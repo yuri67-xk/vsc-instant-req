@@ -13,12 +13,24 @@
   "activationEvents": [],
   "main": "./extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "claudeCodePromptGenerator.open",
-        "title": "Claude Code: Open Prompt Generator"
-      }
-    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "claudeCodePromptGenerator",
+          "title": "Claude Prompt Generator",
+          "icon": "$(file-code)"
+        }
+      ]
+    },
+    "views": {
+      "claudeCodePromptGenerator": [
+        {
+          "type": "webview",
+          "id": "claudeCodePromptGenerator.sidePanel",
+          "name": "Prompt Generator"
+        }
+      ]
+    },
     "configuration": {
       "title": "Claude Code Prompt Generator",
       "properties": {

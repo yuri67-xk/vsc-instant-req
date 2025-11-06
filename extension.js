@@ -1,5 +1,4 @@
 const vscode = require('vscode');
-const path = require('path');
 
 /**
  * @param {vscode.ExtensionContext} context
@@ -7,18 +6,50 @@ const path = require('path');
 function activate(context) {
     console.log('Claude Code Prompt Generator is now active!');
 
-    let disposable = vscode.commands.registerCommand('claudeCodePromptGenerator.open', function () {
-        // Create and show a new webview panel
-        const panel = vscode.window.createWebviewPanel(
-            'claudeCodePromptGenerator',
-            'Claude Code Prompt Generator',
-            vscode.ViewColumn.One,
-            {
-                enableScripts: true,
-                localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath))]
-            }
-        );
+    // Register the webview view provider for the side panel
+    const provider = new PromptGeneratorViewProvider(context.extensionUri);
 
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider(
+            PromptGeneratorViewProvider.viewType,
+            provider
+        )
+    );
+}
+
+class PromptGeneratorViewProvider {
+    static viewType = 'claudeCodePromptGenerator.sidePanel';
+
+    constructor(extensionUri) {
+        this._extensionUri = extensionUri;
+    }
+
+    /**
+     * @param {vscode.WebviewView} webviewView
+     */
+    resolveWebviewView(webviewView) {
+        this._view = webviewView;
+
+        webviewView.webview.options = {
+            enableScripts: true,
+            localResourceRoots: [this._extensionUri]
+        };
+
+        webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+
+        // Handle messages from the webview
+        webviewView.webview.onDidReceiveMessage(message => {
+            switch (message.command) {
+                case 'copyToClipboard':
+                    vscode.env.clipboard.writeText(message.text).then(() => {
+                        vscode.window.showInformationMessage('プロンプトをクリップボードにコピーしました！');
+                    });
+                    return;
+            }
+        });
+    }
+
+    _getHtmlForWebview(webview) {
         // Get settings from VSCode configuration
         const config = vscode.workspace.getConfiguration('claudeCodePromptGenerator');
         const settings = {
@@ -35,30 +66,7 @@ function activate(context) {
             }
         };
 
-        // Load HTML content
-        panel.webview.html = getWebviewContent(panel.webview, context, settings);
-
-        // Handle messages from the webview
-        panel.webview.onDidReceiveMessage(
-            message => {
-                switch (message.command) {
-                    case 'copyToClipboard':
-                        vscode.env.clipboard.writeText(message.text).then(() => {
-                            vscode.window.showInformationMessage('プロンプトをクリップボードにコピーしました！');
-                        });
-                        return;
-                }
-            },
-            undefined,
-            context.subscriptions
-        );
-    });
-
-    context.subscriptions.push(disposable);
-}
-
-function getWebviewContent(webview, context, settings) {
-    return `<!DOCTYPE html>
+        return `<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -72,264 +80,275 @@ function getWebviewContent(webview, context, settings) {
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: var(--vscode-editor-background);
-            color: var(--vscode-editor-foreground);
-            padding: 20px;
+            font-family: var(--vscode-font-family);
+            font-size: var(--vscode-font-size);
+            background: var(--vscode-sideBar-background);
+            color: var(--vscode-sideBar-foreground);
+            padding: 16px;
         }
 
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
+        .section {
+            margin-bottom: 24px;
         }
 
-        header {
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid var(--vscode-panel-border);
-        }
-
-        header h1 {
-            font-size: 24px;
-            margin-bottom: 8px;
-            color: var(--vscode-foreground);
+        .section-title {
+            font-size: 11px;
             font-weight: 600;
-        }
-
-        .subtitle {
-            font-size: 14px;
-            opacity: 0.8;
-        }
-
-        section {
-            margin-bottom: 30px;
-        }
-
-        h2 {
-            font-size: 16px;
-            margin-bottom: 15px;
             color: var(--vscode-foreground);
-            border-bottom: 1px solid var(--vscode-panel-border);
-            padding-bottom: 8px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            font-weight: 600;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--vscode-panel-border);
         }
 
         #requirements-container {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            margin-bottom: 15px;
+            gap: 8px;
+            margin-bottom: 12px;
         }
 
         .requirement-row {
             display: flex;
-            gap: 10px;
+            gap: 6px;
             align-items: center;
         }
 
         .requirement-input {
             flex: 1;
-            padding: 8px;
+            padding: 6px 8px;
             background: var(--vscode-input-background);
             color: var(--vscode-input-foreground);
             border: 1px solid var(--vscode-input-border);
             border-radius: 2px;
+            font-size: 12px;
+            font-family: var(--vscode-font-family);
         }
 
         .requirement-input:focus {
             outline: 1px solid var(--vscode-focusBorder);
+            outline-offset: -1px;
         }
 
         .btn-remove {
-            width: 32px;
-            height: 32px;
+            width: 24px;
+            height: 24px;
             background: var(--vscode-button-secondaryBackground);
             color: var(--vscode-button-secondaryForeground);
             border: none;
             border-radius: 2px;
             cursor: pointer;
-            font-size: 18px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
         }
 
-        .btn-add, .btn-primary, .btn-copy {
+        .btn-remove:hover {
+            background: var(--vscode-button-secondaryHoverBackground);
+        }
+
+        .btn-add {
+            width: 100%;
+            padding: 6px 12px;
+            background: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+            border: none;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .btn-add:hover {
+            background: var(--vscode-button-secondaryHoverBackground);
+        }
+
+        .select-group {
+            margin-bottom: 16px;
+        }
+
+        .select-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            display: block;
+            color: var(--vscode-foreground);
+        }
+
+        .agent-select {
+            width: 100%;
+            padding: 6px 8px;
+            background: var(--vscode-dropdown-background);
+            color: var(--vscode-dropdown-foreground);
+            border: 1px solid var(--vscode-dropdown-border);
+            border-radius: 2px;
+            font-size: 12px;
+            font-family: var(--vscode-font-family);
+        }
+
+        .manual-input-wrapper {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid var(--vscode-panel-border);
+        }
+
+        .manual-label {
+            font-size: 10px;
+            color: var(--vscode-descriptionForeground);
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .agent-manual-input {
+            width: 100%;
+            padding: 6px 8px;
+            background: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            border: 1px solid var(--vscode-input-border);
+            border-radius: 2px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+        }
+
+        .agent-manual-input:focus {
+            outline: 1px solid var(--vscode-focusBorder);
+            outline-offset: -1px;
+        }
+
+        .btn-primary {
+            width: 100%;
             padding: 8px 16px;
             background: var(--vscode-button-background);
             color: var(--vscode-button-foreground);
             border: none;
             border-radius: 2px;
             cursor: pointer;
-            font-weight: 500;
-        }
-
-        .btn-add:hover, .btn-primary:hover, .btn-copy:hover {
-            background: var(--vscode-button-hoverBackground);
-        }
-
-        .agent-selects {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .select-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .select-group > label {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
-        .agent-select {
-            padding: 8px;
-            background: var(--vscode-dropdown-background);
-            color: var(--vscode-dropdown-foreground);
-            border: 1px solid var(--vscode-dropdown-border);
-            border-radius: 2px;
-        }
-
-        .manual-input-wrapper {
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid var(--vscode-panel-border);
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .manual-label {
-            font-size: 12px;
-            opacity: 0.7;
-            font-weight: 400;
-        }
-
-        .agent-manual-input {
-            padding: 8px;
-            background: var(--vscode-input-background);
-            color: var(--vscode-input-foreground);
-            border: 1px solid var(--vscode-input-border);
-            border-radius: 2px;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-        }
-
-        .agent-manual-input:focus {
-            outline: 1px solid var(--vscode-focusBorder);
-        }
-
-        .action-section {
-            text-align: center;
-            padding: 20px 0;
-        }
-
-        .btn-primary {
-            padding: 12px 32px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        .btn-primary:hover {
+            background: var(--vscode-button-hoverBackground);
         }
 
         .output-section {
-            margin-top: 30px;
-            padding-top: 30px;
-            border-top: 2px solid var(--vscode-panel-border);
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid var(--vscode-panel-border);
         }
 
         .output-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
+        }
+
+        .output-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .btn-copy {
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            padding: 4px 12px;
+            background: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: none;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .btn-copy:hover {
+            background: var(--vscode-button-hoverBackground);
         }
 
         .prompt-display {
             background: var(--vscode-textCodeBlock-background);
             border: 1px solid var(--vscode-panel-border);
             border-radius: 2px;
-            padding: 16px;
-            font-size: 13px;
-            line-height: 1.8;
+            padding: 12px;
+            font-size: 11px;
+            line-height: 1.6;
             white-space: pre-wrap;
             word-wrap: break-word;
-            max-height: 500px;
+            max-height: 400px;
             overflow-y: auto;
             font-family: 'Courier New', monospace;
         }
 
-        @media (max-width: 768px) {
-            .agent-selects {
-                grid-template-columns: 1fr;
-            }
+        .prompt-display::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .prompt-display::-webkit-scrollbar-track {
+            background: var(--vscode-scrollbarSlider-background);
+        }
+
+        .prompt-display::-webkit-scrollbar-thumb {
+            background: var(--vscode-scrollbarSlider-activeBackground);
+            border-radius: 4px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Claude Code Prompt Generator</h1>
-            <p class="subtitle">Plan Mode & Subagents機能を活用したプロンプト自動生成</p>
-        </header>
+    <div class="section">
+        <div class="section-title">機能要件</div>
+        <div id="requirements-container">
+            <div class="requirement-row">
+                <input type="text" class="requirement-input" placeholder="機能要件を入力">
+                <button class="btn-remove" onclick="removeRequirement(this)">×</button>
+            </div>
+        </div>
+        <button class="btn-add" onclick="addRequirement()">+ 要件を追加</button>
+    </div>
 
-        <main>
-            <section class="input-section">
-                <h2>機能要件</h2>
-                <div id="requirements-container">
-                    <div class="requirement-row">
-                        <input type="text" class="requirement-input" placeholder="機能要件を入力してください">
-                        <button class="btn-remove" onclick="removeRequirement(this)">×</button>
-                    </div>
-                </div>
-                <button class="btn-add" onclick="addRequirement()">+ 要件を追加</button>
-            </section>
+    <div class="section">
+        <div class="section-title">エージェント選択</div>
 
-            <section class="agent-section">
-                <h2>エージェント選択</h2>
-                <div class="agent-selects">
-                    <div class="select-group">
-                        <label for="spec-agent">仕様設計書作成エージェント</label>
-                        <select id="spec-agent" class="agent-select" onchange="handleAgentSelect('spec')">
-                            <option value="">選択してください</option>
-                        </select>
-                        <div class="manual-input-wrapper">
-                            <label for="spec-agent-manual" class="manual-label">または手動入力（@なしで入力）</label>
-                            <input type="text" id="spec-agent-manual" class="agent-manual-input" placeholder="例: custom-agent">
-                        </div>
-                    </div>
-                    <div class="select-group">
-                        <label for="impl-agent">実装担当エージェント</label>
-                        <select id="impl-agent" class="agent-select" onchange="handleAgentSelect('impl')">
-                            <option value="">選択してください</option>
-                        </select>
-                        <div class="manual-input-wrapper">
-                            <label for="impl-agent-manual" class="manual-label">または手動入力（@なしで入力）</label>
-                            <input type="text" id="impl-agent-manual" class="agent-manual-input" placeholder="例: custom-implementer">
-                        </div>
-                    </div>
-                </div>
-            </section>
+        <div class="select-group">
+            <label class="select-label">仕様設計書作成</label>
+            <select id="spec-agent" class="agent-select" onchange="handleAgentSelect('spec')">
+                <option value="">選択してください</option>
+            </select>
+            <div class="manual-input-wrapper">
+                <label class="manual-label">または手動入力（@なし）</label>
+                <input type="text" id="spec-agent-manual" class="agent-manual-input" placeholder="custom-agent">
+            </div>
+        </div>
 
-            <section class="action-section">
-                <button class="btn-primary" onclick="generatePrompt()">プロンプト作成</button>
-            </section>
+        <div class="select-group">
+            <label class="select-label">実装担当</label>
+            <select id="impl-agent" class="agent-select" onchange="handleAgentSelect('impl')">
+                <option value="">選択してください</option>
+            </select>
+            <div class="manual-input-wrapper">
+                <label class="manual-label">または手動入力（@なし）</label>
+                <input type="text" id="impl-agent-manual" class="agent-manual-input" placeholder="custom-implementer">
+            </div>
+        </div>
+    </div>
 
-            <section class="output-section" id="output-section" style="display: none;">
-                <div class="output-header">
-                    <h2>生成されたプロンプト</h2>
-                    <button class="btn-copy" onclick="copyToClipboard()">📋 COPY</button>
-                </div>
-                <pre id="prompt-output" class="prompt-display"></pre>
-            </section>
-        </main>
+    <div class="section">
+        <button class="btn-primary" onclick="generatePrompt()">プロンプト作成</button>
+    </div>
+
+    <div class="output-section" id="output-section" style="display: none;">
+        <div class="output-header">
+            <div class="output-title">生成プロンプト</div>
+            <button class="btn-copy" onclick="copyToClipboard()">COPY</button>
+        </div>
+        <pre id="prompt-output" class="prompt-display"></pre>
     </div>
 
     <script>
@@ -345,7 +364,6 @@ function getWebviewContent(webview, context, settings) {
             const specAgentSelect = document.getElementById('spec-agent');
             const implAgentSelect = document.getElementById('impl-agent');
 
-            // Populate spec writers (name only, no description)
             settings.agents.specWriters.forEach(agent => {
                 const option = document.createElement('option');
                 option.value = agent.id;
@@ -353,7 +371,6 @@ function getWebviewContent(webview, context, settings) {
                 specAgentSelect.appendChild(option);
             });
 
-            // Populate implementers (name only, no description)
             settings.agents.implementers.forEach(agent => {
                 const option = document.createElement('option');
                 option.value = agent.id;
@@ -364,12 +381,11 @@ function getWebviewContent(webview, context, settings) {
 
         function handleAgentSelect(type) {
             const manualInputId = type === 'spec' ? 'spec-agent-manual' : 'impl-agent-manual';
-            const manualInput = document.getElementById(manualInputId);
             const selectId = type === 'spec' ? 'spec-agent' : 'impl-agent';
             const selectValue = document.getElementById(selectId).value;
 
             if (selectValue) {
-                manualInput.value = '';
+                document.getElementById(manualInputId).value = '';
             }
         }
 
@@ -381,7 +397,7 @@ function getWebviewContent(webview, context, settings) {
             const manualValue = document.getElementById(manualInputId).value.trim();
 
             if (selectValue) {
-                return selectValue; // Already has @ prefix
+                return selectValue;
             } else if (manualValue) {
                 return manualValue.startsWith('@') ? manualValue : '@' + manualValue;
             }
@@ -394,7 +410,7 @@ function getWebviewContent(webview, context, settings) {
             const row = document.createElement('div');
             row.className = 'requirement-row';
             row.innerHTML = \`
-                <input type="text" class="requirement-input" placeholder="機能要件を入力してください">
+                <input type="text" class="requirement-input" placeholder="機能要件を入力">
                 <button class="btn-remove" onclick="removeRequirement(this)">×</button>
             \`;
             container.appendChild(row);
@@ -403,9 +419,7 @@ function getWebviewContent(webview, context, settings) {
         function removeRequirement(button) {
             const container = document.getElementById('requirements-container');
             const rows = container.getElementsByClassName('requirement-row');
-            if (rows.length <= 1) {
-                return;
-            }
+            if (rows.length <= 1) return;
             button.parentElement.remove();
         }
 
@@ -452,6 +466,7 @@ function getWebviewContent(webview, context, settings) {
     </script>
 </body>
 </html>`;
+    }
 }
 
 function deactivate() {}
