@@ -1,7 +1,7 @@
 {
-  "name": "claude-code-prompt-generator",
-  "displayName": "Claude Code Prompt Generator",
-  "description": "Claude CodeのPlan ModeとSubagents機能を最大限活用するプロンプトを自動生成",
+  "name": "instant-req",
+  "displayName": "Instant Req",
+  "description": "Claude Codeの要件定義から実装まで一貫したプロンプトを即座に生成",
   "version": "1.0.0",
   "publisher": "your-publisher-name",
   "engines": {
@@ -16,63 +16,78 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "claudeCodePromptGenerator",
-          "title": "Claude Prompt Generator",
-          "icon": "$(file-code)"
+          "id": "instantReq",
+          "title": "Instant Req",
+          "icon": "./instant-plan.svg"
         }
       ]
     },
     "views": {
-      "claudeCodePromptGenerator": [
+      "instantReq": [
         {
           "type": "webview",
-          "id": "claudeCodePromptGenerator.sidePanel",
-          "name": "Prompt Generator"
+          "id": "instantReq.sidePanel",
+          "name": "Instant Req"
         }
       ]
     },
     "configuration": {
-      "title": "Claude Code Prompt Generator",
+      "title": "Instant Req",
       "properties": {
-        "claudeCodePromptGenerator.agents.specWriters": {
+        "instantReq.agents.specWriters": {
           "type": "array",
           "default": [
             {
-              "id": "@general-purpose",
+              "id": "@agent-general-purpose",
               "name": "General Purpose Agent"
-            },
-            {
-              "id": "@doc-specialist",
-              "name": "Documentation Specialist"
-            },
-            {
-              "id": "@architect",
-              "name": "System Architect"
             }
           ],
           "description": "仕様書作成用エージェントのリスト"
         },
-        "claudeCodePromptGenerator.agents.implementers": {
+        "instantReq.agents.implementers": {
           "type": "array",
           "default": [
             {
-              "id": "@general-purpose",
+              "id": "@agent-general-purpose",
               "name": "General Purpose Agent"
-            },
-            {
-              "id": "@frontend-dev",
-              "name": "Frontend Developer"
-            },
-            {
-              "id": "@backend-dev",
-              "name": "Backend Developer"
-            },
-            {
-              "id": "@fullstack-dev",
-              "name": "Fullstack Developer"
             }
           ],
           "description": "実装用エージェントのリスト"
+        },
+        "instantReq.promptTemplate.header": {
+          "type": "string",
+          "default": "以下の要件に基づいて機能を開発したい。",
+          "description": "プロンプトのヘッダー部分"
+        },
+        "instantReq.promptTemplate.planningStep": {
+          "type": "string", 
+          "default": "上記の要件を詳細にPlanningして、開発計画を提示すること。",
+          "description": "プランニングステップの説明"
+        },
+        "instantReq.promptTemplate.specLocationStep": {
+          "type": "string",
+          "default": "ユーザーがPlanningを承認したら、docs/specs/配下の適切なフォルダを選定し（既存フォルダの確認・新規作成判断を含む）、仕様設計書の保存先を決定すること。",
+          "description": "仕様書保存先選定ステップ"
+        },
+        "instantReq.promptTemplate.specCreationStep": {
+          "type": "string",
+          "default": "保存先決定後、{agent-a}に詳細な仕様設計書を作成させること。仕様書には実装方針、API設計、データ構造、テストケース詳細を含めること。",
+          "description": "仕様書作成ステップの説明"
+        },
+        "instantReq.promptTemplate.implementationStep": {
+          "type": "string",
+          "default": "仕様設計書が作成されたら、{agent-b}にその仕様書に基づいて実装を行わせること。",
+          "description": "実装ステップの説明"
+        },
+        "instantReq.promptTemplate.testingStep": {
+          "type": "string",
+          "default": "実装完了後、ユーザーがテストを行うための簡潔なテストケース概要を提示すること。詳細なテストケースは仕様設計書に記載済みのため、ここでは要点のみ。",
+          "description": "テストケース提示ステップ"
+        },
+        "instantReq.promptTemplate.restrictions": {
+          "type": "string",
+          "default": "【重要】Git Commitは絶対に自動実行しないこと。ユーザーが動作確認後に手動でCommitを行う。",
+          "description": "制約事項・拒否事項"
         }
       }
     }

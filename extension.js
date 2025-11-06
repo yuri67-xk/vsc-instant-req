@@ -4,21 +4,21 @@ const vscode = require('vscode');
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
-    console.log('Claude Code Prompt Generator is now active!');
+    console.log('Instant Req is now active!');
 
     // Register the webview view provider for the side panel
-    const provider = new PromptGeneratorViewProvider(context.extensionUri);
+    const provider = new InstantReqViewProvider(context.extensionUri);
 
     context.subscriptions.push(
         vscode.window.registerWebviewViewProvider(
-            PromptGeneratorViewProvider.viewType,
+            InstantReqViewProvider.viewType,
             provider
         )
     );
 }
 
-class PromptGeneratorViewProvider {
-    static viewType = 'claudeCodePromptGenerator.sidePanel';
+class InstantReqViewProvider {
+    static viewType = 'instantReq.sidePanel';
 
     constructor(extensionUri) {
         this._extensionUri = extensionUri;
@@ -51,18 +51,26 @@ class PromptGeneratorViewProvider {
 
     _getHtmlForWebview(webview) {
         // Get settings from VSCode configuration
-        const config = vscode.workspace.getConfiguration('claudeCodePromptGenerator');
+        const config = vscode.workspace.getConfiguration('instantReq');
+        
+        // Default agent: Claude Code standard general-purpose agent
+        const defaultAgents = [
+            { id: "@general-purpose", name: "General Purpose Agent" }
+        ];
+        
         const settings = {
             agents: {
-                specWriters: config.get('agents.specWriters') || [],
-                implementers: config.get('agents.implementers') || []
+                specWriters: config.get('agents.specWriters') || defaultAgents,
+                implementers: config.get('agents.implementers') || defaultAgents
             },
             promptTemplate: {
-                header: "以下の要件に基づいて機能改修したい。",
-                planningStep: "上記の要件をPlanningすること。",
-                specCreationStep: "ユーザーがPlanningを承認したら、{agent-a}にdocs/specs/配下に仕様書を作成させる（specs/配下に分類可能な既存フォルダがあるかを確認し、ない場合は新規作成・ある場合はフォルダへ保存）",
-                implementationStep: "ドキュメント保存後、その仕様設計書に基づいて、{agent-b}に実装を行わせる。",
-                finalNote: "実装完了後はユーザーがテストするので、Git Commitを自動で行わないこと。"
+                header: config.get('promptTemplate.header') || "以下の要件に基づいて機能を開発したい。",
+                planningStep: config.get('promptTemplate.planningStep') || "上記の要件を詳細にPlanningして、開発計画を提示すること。",
+                specLocationStep: config.get('promptTemplate.specLocationStep') || "ユーザーがPlanningを承認したら、docs/specs/配下の適切なフォルダを選定し（既存フォルダの確認・新規作成判断を含む）、仕様設計書の保存先を決定すること。",
+                specCreationStep: config.get('promptTemplate.specCreationStep') || "保存先決定後、{agent-a}に詳細な仕様設計書を作成させること。仕様書には実装方針、API設計、データ構造、テストケース詳細を含めること。",
+                implementationStep: config.get('promptTemplate.implementationStep') || "仕様設計書が作成されたら、{agent-b}にその仕様書に基づいて実装を行わせること。",
+                testingStep: config.get('promptTemplate.testingStep') || "実装完了後、ユーザーがテストを行うための簡潔なテストケース概要を提示すること。詳細なテストケースは仕様設計書に記載済みのため、ここでは要点のみ。",
+                restrictions: config.get('promptTemplate.restrictions') || "【重要】Git Commitは絶対に自動実行しないこと。ユーザーが動作確認後に手動でCommitを行う。"
             }
         };
 
@@ -71,7 +79,7 @@ class PromptGeneratorViewProvider {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Claude Code Prompt Generator</title>
+    <title>Instant Req</title>
     <style>
         * {
             margin: 0;
@@ -85,6 +93,8 @@ class PromptGeneratorViewProvider {
             background: var(--vscode-sideBar-background);
             color: var(--vscode-sideBar-foreground);
             padding: 16px;
+            height: auto;
+            overflow-y: auto;
         }
 
         .section {
@@ -220,8 +230,13 @@ class PromptGeneratorViewProvider {
             outline-offset: -1px;
         }
 
+        .button-group {
+            display: flex;
+            gap: 8px;
+        }
+
         .btn-primary {
-            width: 100%;
+            flex: 1;
             padding: 8px 16px;
             background: var(--vscode-button-background);
             color: var(--vscode-button-foreground);
@@ -236,6 +251,24 @@ class PromptGeneratorViewProvider {
 
         .btn-primary:hover {
             background: var(--vscode-button-hoverBackground);
+        }
+
+        .btn-secondary {
+            flex: 0 0 auto;
+            padding: 8px 16px;
+            background: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+            border: none;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-secondary:hover {
+            background: var(--vscode-button-secondaryHoverBackground);
         }
 
         .output-section {
@@ -282,22 +315,10 @@ class PromptGeneratorViewProvider {
             line-height: 1.6;
             white-space: pre-wrap;
             word-wrap: break-word;
-            max-height: 400px;
-            overflow-y: auto;
             font-family: 'Courier New', monospace;
-        }
-
-        .prompt-display::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .prompt-display::-webkit-scrollbar-track {
-            background: var(--vscode-scrollbarSlider-background);
-        }
-
-        .prompt-display::-webkit-scrollbar-thumb {
-            background: var(--vscode-scrollbarSlider-activeBackground);
-            border-radius: 4px;
+            overflow: visible;
+            height: auto;
+            min-height: 50px;
         }
     </style>
 </head>
@@ -340,12 +361,15 @@ class PromptGeneratorViewProvider {
     </div>
 
     <div class="section">
-        <button class="btn-primary" onclick="generatePrompt()">プロンプト作成</button>
+        <div class="button-group">
+            <button class="btn-primary" onclick="generatePrompt()">プロンプト発行</button>
+            <button class="btn-secondary" onclick="clearAll()">CLEAR</button>
+        </div>
     </div>
 
     <div class="output-section" id="output-section" style="display: none;">
         <div class="output-header">
-            <div class="output-title">生成プロンプト</div>
+            <div class="output-title">プロンプト本文</div>
             <button class="btn-copy" onclick="copyToClipboard()">COPY</button>
         </div>
         <pre id="prompt-output" class="prompt-display"></pre>
@@ -355,10 +379,8 @@ class PromptGeneratorViewProvider {
         const vscode = acquireVsCodeApi();
         const settings = ${JSON.stringify(settings)};
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            populateAgentDropdowns();
-        });
+        // Initialize immediately
+        populateAgentDropdowns();
 
         function populateAgentDropdowns() {
             const specAgentSelect = document.getElementById('spec-agent');
@@ -409,10 +431,8 @@ class PromptGeneratorViewProvider {
             const container = document.getElementById('requirements-container');
             const row = document.createElement('div');
             row.className = 'requirement-row';
-            row.innerHTML = \`
-                <input type="text" class="requirement-input" placeholder="機能要件を入力">
-                <button class="btn-remove" onclick="removeRequirement(this)">×</button>
-            \`;
+            row.innerHTML = '<input type="text" class="requirement-input" placeholder="機能要件を入力">' +
+                           '<button class="btn-remove" onclick="removeRequirement(this)">×</button>';
             container.appendChild(row);
         }
 
@@ -443,17 +463,59 @@ class PromptGeneratorViewProvider {
             }
 
             const template = settings.promptTemplate;
-            let prompt = \`1. \${template.header}\\n\`;
+            let prompt = '1. ' + template.header + '\\n';
             requirements.forEach(req => {
-                prompt += \`   - \${req}\\n\`;
+                prompt += '   - ' + req + '\\n';
             });
-            prompt += \`\\n2. \${template.planningStep}\\n\\n\`;
-            prompt += \`3. \${template.specCreationStep.replace('{agent-a}', specAgentId)}\\n\\n\`;
-            prompt += \`4. \${template.implementationStep.replace('{agent-b}', implAgentId)}\\n\\n\`;
-            prompt += \`5. \${template.finalNote}\`;
+            prompt += '\\n2. ' + template.planningStep + '\\n\\n';
+            prompt += '3. ' + template.specLocationStep + '\\n\\n';
+            prompt += '4. ' + template.specCreationStep.replace('{agent-a}', specAgentId) + '\\n\\n';
+            prompt += '5. ' + template.implementationStep.replace('{agent-b}', implAgentId) + '\\n\\n';
+            prompt += '6. ' + template.testingStep + '\\n\\n';
+            prompt += '7. ' + template.restrictions;
 
-            document.getElementById('prompt-output').textContent = prompt;
+            const outputElement = document.getElementById('prompt-output');
+            outputElement.textContent = prompt;
             document.getElementById('output-section').style.display = 'block';
+            
+            // 高さを動的に調整（全文表示）
+            adjustPromptDisplayHeight();
+        }
+
+        function adjustPromptDisplayHeight() {
+            const outputElement = document.getElementById('prompt-output');
+            if (outputElement) {
+                // 一時的にheightをautoにして自然な高さを取得
+                outputElement.style.height = 'auto';
+                const scrollHeight = outputElement.scrollHeight;
+                outputElement.style.height = scrollHeight + 'px';
+            }
+        }
+
+        function clearAll() {
+            // Clear all requirement inputs
+            const inputs = document.querySelectorAll('.requirement-input');
+            inputs.forEach(input => {
+                input.value = '';
+            });
+            
+            // Reset agent selects to default
+            document.getElementById('spec-agent').selectedIndex = 0;
+            document.getElementById('impl-agent').selectedIndex = 0;
+            
+            // Clear custom agent inputs
+            document.getElementById('spec-agent-manual').value = '';
+            document.getElementById('impl-agent-manual').value = '';
+            
+            // Hide output section
+            document.getElementById('output-section').style.display = 'none';
+            
+            // Keep only one requirement row
+            const container = document.getElementById('requirements-container');
+            const rows = container.querySelectorAll('.requirement-row');
+            for (let i = 1; i < rows.length; i++) {
+                rows[i].remove();
+            }
         }
 
         function copyToClipboard() {
