@@ -1,0 +1,99 @@
+{
+  "name": "claude-code-prompt-generator",
+  "displayName": "Claude Code Prompt Generator",
+  "description": "Claude CodeのPlan ModeとSubagents機能を最大限活用するプロンプトを自動生成",
+  "version": "1.0.0",
+  "publisher": "your-publisher-name",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "claudeCodePromptGenerator.open",
+        "title": "Claude Code: Open Prompt Generator"
+      }
+    ],
+    "configuration": {
+      "title": "Claude Code Prompt Generator",
+      "properties": {
+        "claudeCodePromptGenerator.agents.specWriters": {
+          "type": "array",
+          "default": [
+            {
+              "id": "general-purpose",
+              "name": "General Purpose Agent",
+              "description": "汎用的な仕様書作成に対応"
+            },
+            {
+              "id": "doc-specialist",
+              "name": "Documentation Specialist",
+              "description": "ドキュメント作成専門エージェント"
+            },
+            {
+              "id": "architect",
+              "name": "System Architect",
+              "description": "システム設計・アーキテクチャ専門"
+            }
+          ],
+          "description": "仕様書作成用エージェントのリスト"
+        },
+        "claudeCodePromptGenerator.agents.implementers": {
+          "type": "array",
+          "default": [
+            {
+              "id": "general-purpose",
+              "name": "General Purpose Agent",
+              "description": "汎用的な実装に対応"
+            },
+            {
+              "id": "frontend-dev",
+              "name": "Frontend Developer",
+              "description": "フロントエンド実装専門"
+            },
+            {
+              "id": "backend-dev",
+              "name": "Backend Developer",
+              "description": "バックエンド実装専門"
+            },
+            {
+              "id": "fullstack-dev",
+              "name": "Fullstack Developer",
+              "description": "フルスタック実装対応"
+            }
+          ],
+          "description": "実装用エージェントのリスト"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "pretest": "npm run lint",
+    "test": "node ./test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "@types/node": "^20.x",
+    "eslint": "^8.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/claude-code-prompt-generator"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "prompt",
+    "generator",
+    "ai",
+    "subagents",
+    "plan-mode"
+  ],
+  "license": "MIT"
+}

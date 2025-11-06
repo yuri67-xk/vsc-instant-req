@@ -1,0 +1,50 @@
+{
+  "agents": {
+    "specWriters": [
+      {
+        "id": "general-purpose",
+        "name": "General Purpose Agent",
+        "description": "汎用的な仕様書作成に対応"
+      },
+      {
+        "id": "doc-specialist",
+        "name": "Documentation Specialist",
+        "description": "ドキュメント作成専門エージェント"
+      },
+      {
+        "id": "architect",
+        "name": "System Architect",
+        "description": "システム設計・アーキテクチャ専門"
+      }
+    ],
+    "implementers": [
+      {
+        "id": "general-purpose",
+        "name": "General Purpose Agent",
+        "description": "汎用的な実装に対応"
+      },
+      {
+        "id": "frontend-dev",
+        "name": "Frontend Developer",
+        "description": "フロントエンド実装専門"
+      },
+      {
+        "id": "backend-dev",
+        "name": "Backend Developer",
+        "description": "バックエンド実装専門"
+      },
+      {
+        "id": "fullstack-dev",
+        "name": "Fullstack Developer",
+        "description": "フルスタック実装対応"
+      }
+    ]
+  },
+  "promptTemplate": {
+    "header": "以下の要件に基づいて機能改修したい。",
+    "planningStep": "上記の要件をPlanningすること。",
+    "specCreationStep": "ユーザーがPlanningを承認したら、{agent-a}にdocs/specs/配下に仕様書を作成させる（specs/配下に分類可能な既存フォルダがあるかを確認し、ない場合は新規作成・ある場合はフォルダへ保存）",
+    "implementationStep": "ドキュメント保存後、その仕様設計書に基づいて、{agent-b}に実装を行わせる。",
+    "finalNote": "実装完了後はユーザーがテストするので、Git Commitを自動で行わないこと。"
+  }
+}
