@@ -30,21 +30,54 @@ function populateAgentDropdowns() {
     specAgentSelect.innerHTML = '<option value="">選択してください</option>';
     implAgentSelect.innerHTML = '<option value="">選択してください</option>';
 
-    // Populate spec writers
+    // Populate spec writers (name only, no description)
     settings.agents.specWriters.forEach(agent => {
         const option = document.createElement('option');
         option.value = agent.id;
-        option.textContent = `${agent.name} - ${agent.description}`;
+        option.textContent = agent.name;
         specAgentSelect.appendChild(option);
     });
 
-    // Populate implementers
+    // Populate implementers (name only, no description)
     settings.agents.implementers.forEach(agent => {
         const option = document.createElement('option');
         option.value = agent.id;
-        option.textContent = `${agent.name} - ${agent.description}`;
+        option.textContent = agent.name;
         implAgentSelect.appendChild(option);
     });
+}
+
+// Handle agent selection - clear manual input when dropdown is used
+function handleAgentSelect(type) {
+    const manualInputId = type === 'spec' ? 'spec-agent-manual' : 'impl-agent-manual';
+    const manualInput = document.getElementById(manualInputId);
+
+    // Clear manual input when dropdown is selected
+    const selectId = type === 'spec' ? 'spec-agent' : 'impl-agent';
+    const selectValue = document.getElementById(selectId).value;
+
+    if (selectValue) {
+        manualInput.value = '';
+    }
+}
+
+// Get agent ID from dropdown or manual input, with @ prefix
+function getAgentValue(type) {
+    const selectId = type === 'spec' ? 'spec-agent' : 'impl-agent';
+    const manualInputId = type === 'spec' ? 'spec-agent-manual' : 'impl-agent-manual';
+
+    const selectValue = document.getElementById(selectId).value;
+    const manualValue = document.getElementById(manualInputId).value.trim();
+
+    // Priority: dropdown first, then manual input
+    if (selectValue) {
+        return selectValue; // Already has @ prefix from settings.json
+    } else if (manualValue) {
+        // Add @ prefix if not already present
+        return manualValue.startsWith('@') ? manualValue : `@${manualValue}`;
+    }
+
+    return null;
 }
 
 // Add new requirement input field
@@ -91,8 +124,8 @@ function getRequirements() {
 // Generate prompt based on user input
 function generatePrompt() {
     const requirements = getRequirements();
-    const specAgentId = document.getElementById('spec-agent').value;
-    const implAgentId = document.getElementById('impl-agent').value;
+    const specAgentId = getAgentValue('spec');
+    const implAgentId = getAgentValue('impl');
 
     // Validation
     if (requirements.length === 0) {
@@ -101,28 +134,24 @@ function generatePrompt() {
     }
 
     if (!specAgentId) {
-        alert('仕様設計書作成エージェントを選択してください。');
+        alert('仕様設計書作成エージェントを選択または入力してください。');
         return;
     }
 
     if (!implAgentId) {
-        alert('実装担当エージェントを選択してください。');
+        alert('実装担当エージェントを選択または入力してください。');
         return;
     }
 
-    // Find agent names
-    const specAgent = settings.agents.specWriters.find(a => a.id === specAgentId);
-    const implAgent = settings.agents.implementers.find(a => a.id === implAgentId);
-
     // Generate prompt
-    const prompt = buildPrompt(requirements, specAgent, implAgent);
+    const prompt = buildPrompt(requirements, specAgentId, implAgentId);
 
     // Display prompt
     displayPrompt(prompt);
 }
 
 // Build prompt string from template
-function buildPrompt(requirements, specAgent, implAgent) {
+function buildPrompt(requirements, specAgentId, implAgentId) {
     const template = settings.promptTemplate;
 
     let prompt = `1. ${template.header}\n`;
@@ -134,11 +163,11 @@ function buildPrompt(requirements, specAgent, implAgent) {
 
     prompt += `\n2. ${template.planningStep}\n\n`;
 
-    // Replace agent placeholders
-    const specStep = template.specCreationStep.replace('{agent-a}', specAgent.id);
+    // Replace agent placeholders with @ prefixed IDs
+    const specStep = template.specCreationStep.replace('{agent-a}', specAgentId);
     prompt += `3. ${specStep}\n\n`;
 
-    const implStep = template.implementationStep.replace('{agent-b}', implAgent.id);
+    const implStep = template.implementationStep.replace('{agent-b}', implAgentId);
     prompt += `4. ${implStep}\n\n`;
 
     prompt += `5. ${template.finalNote}`;

@@ -58,10 +58,6 @@ function activate(context) {
 }
 
 function getWebviewContent(webview, context, settings) {
-    // Read the HTML file
-    const htmlPath = vscode.Uri.file(path.join(context.extensionPath, 'index.html'));
-    const cssPath = webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'styles.css')));
-
     return `<!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -83,7 +79,7 @@ function getWebviewContent(webview, context, settings) {
         }
 
         .container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
         }
 
@@ -97,6 +93,7 @@ function getWebviewContent(webview, context, settings) {
             font-size: 24px;
             margin-bottom: 8px;
             color: var(--vscode-foreground);
+            font-weight: 600;
         }
 
         .subtitle {
@@ -114,6 +111,9 @@ function getWebviewContent(webview, context, settings) {
             color: var(--vscode-foreground);
             border-bottom: 1px solid var(--vscode-panel-border);
             padding-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
         }
 
         #requirements-container {
@@ -135,7 +135,7 @@ function getWebviewContent(webview, context, settings) {
             background: var(--vscode-input-background);
             color: var(--vscode-input-foreground);
             border: 1px solid var(--vscode-input-border);
-            border-radius: 4px;
+            border-radius: 2px;
         }
 
         .requirement-input:focus {
@@ -143,12 +143,14 @@ function getWebviewContent(webview, context, settings) {
         }
 
         .btn-remove {
-            padding: 6px 12px;
+            width: 32px;
+            height: 32px;
             background: var(--vscode-button-secondaryBackground);
             color: var(--vscode-button-secondaryForeground);
             border: none;
-            border-radius: 4px;
+            border-radius: 2px;
             cursor: pointer;
+            font-size: 18px;
         }
 
         .btn-add, .btn-primary, .btn-copy {
@@ -156,8 +158,9 @@ function getWebviewContent(webview, context, settings) {
             background: var(--vscode-button-background);
             color: var(--vscode-button-foreground);
             border: none;
-            border-radius: 4px;
+            border-radius: 2px;
             cursor: pointer;
+            font-weight: 500;
         }
 
         .btn-add:hover, .btn-primary:hover, .btn-copy:hover {
@@ -176,9 +179,11 @@ function getWebviewContent(webview, context, settings) {
             gap: 8px;
         }
 
-        .select-group label {
+        .select-group > label {
             font-size: 13px;
             font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .agent-select {
@@ -186,11 +191,47 @@ function getWebviewContent(webview, context, settings) {
             background: var(--vscode-dropdown-background);
             color: var(--vscode-dropdown-foreground);
             border: 1px solid var(--vscode-dropdown-border);
-            border-radius: 4px;
+            border-radius: 2px;
+        }
+
+        .manual-input-wrapper {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--vscode-panel-border);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .manual-label {
+            font-size: 12px;
+            opacity: 0.7;
+            font-weight: 400;
+        }
+
+        .agent-manual-input {
+            padding: 8px;
+            background: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            border: 1px solid var(--vscode-input-border);
+            border-radius: 2px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .agent-manual-input:focus {
+            outline: 1px solid var(--vscode-focusBorder);
         }
 
         .action-section {
             text-align: center;
+            padding: 20px 0;
+        }
+
+        .btn-primary {
+            padding: 12px 32px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .output-section {
@@ -206,16 +247,21 @@ function getWebviewContent(webview, context, settings) {
             margin-bottom: 15px;
         }
 
+        .btn-copy {
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         .prompt-display {
             background: var(--vscode-textCodeBlock-background);
             border: 1px solid var(--vscode-panel-border);
-            border-radius: 4px;
+            border-radius: 2px;
             padding: 16px;
             font-size: 13px;
-            line-height: 1.6;
+            line-height: 1.8;
             white-space: pre-wrap;
             word-wrap: break-word;
-            max-height: 400px;
+            max-height: 500px;
             overflow-y: auto;
             font-family: 'Courier New', monospace;
         }
@@ -251,15 +297,23 @@ function getWebviewContent(webview, context, settings) {
                 <div class="agent-selects">
                     <div class="select-group">
                         <label for="spec-agent">仕様設計書作成エージェント</label>
-                        <select id="spec-agent" class="agent-select">
+                        <select id="spec-agent" class="agent-select" onchange="handleAgentSelect('spec')">
                             <option value="">選択してください</option>
                         </select>
+                        <div class="manual-input-wrapper">
+                            <label for="spec-agent-manual" class="manual-label">または手動入力（@なしで入力）</label>
+                            <input type="text" id="spec-agent-manual" class="agent-manual-input" placeholder="例: custom-agent">
+                        </div>
                     </div>
                     <div class="select-group">
                         <label for="impl-agent">実装担当エージェント</label>
-                        <select id="impl-agent" class="agent-select">
+                        <select id="impl-agent" class="agent-select" onchange="handleAgentSelect('impl')">
                             <option value="">選択してください</option>
                         </select>
+                        <div class="manual-input-wrapper">
+                            <label for="impl-agent-manual" class="manual-label">または手動入力（@なしで入力）</label>
+                            <input type="text" id="impl-agent-manual" class="agent-manual-input" placeholder="例: custom-implementer">
+                        </div>
                     </div>
                 </div>
             </section>
@@ -291,19 +345,48 @@ function getWebviewContent(webview, context, settings) {
             const specAgentSelect = document.getElementById('spec-agent');
             const implAgentSelect = document.getElementById('impl-agent');
 
+            // Populate spec writers (name only, no description)
             settings.agents.specWriters.forEach(agent => {
                 const option = document.createElement('option');
                 option.value = agent.id;
-                option.textContent = agent.name + ' - ' + agent.description;
+                option.textContent = agent.name;
                 specAgentSelect.appendChild(option);
             });
 
+            // Populate implementers (name only, no description)
             settings.agents.implementers.forEach(agent => {
                 const option = document.createElement('option');
                 option.value = agent.id;
-                option.textContent = agent.name + ' - ' + agent.description;
+                option.textContent = agent.name;
                 implAgentSelect.appendChild(option);
             });
+        }
+
+        function handleAgentSelect(type) {
+            const manualInputId = type === 'spec' ? 'spec-agent-manual' : 'impl-agent-manual';
+            const manualInput = document.getElementById(manualInputId);
+            const selectId = type === 'spec' ? 'spec-agent' : 'impl-agent';
+            const selectValue = document.getElementById(selectId).value;
+
+            if (selectValue) {
+                manualInput.value = '';
+            }
+        }
+
+        function getAgentValue(type) {
+            const selectId = type === 'spec' ? 'spec-agent' : 'impl-agent';
+            const manualInputId = type === 'spec' ? 'spec-agent-manual' : 'impl-agent-manual';
+
+            const selectValue = document.getElementById(selectId).value;
+            const manualValue = document.getElementById(manualInputId).value.trim();
+
+            if (selectValue) {
+                return selectValue; // Already has @ prefix
+            } else if (manualValue) {
+                return manualValue.startsWith('@') ? manualValue : '@' + manualValue;
+            }
+
+            return null;
         }
 
         function addRequirement() {
@@ -338,15 +421,12 @@ function getWebviewContent(webview, context, settings) {
 
         function generatePrompt() {
             const requirements = getRequirements();
-            const specAgentId = document.getElementById('spec-agent').value;
-            const implAgentId = document.getElementById('impl-agent').value;
+            const specAgentId = getAgentValue('spec');
+            const implAgentId = getAgentValue('impl');
 
             if (requirements.length === 0 || !specAgentId || !implAgentId) {
                 return;
             }
-
-            const specAgent = settings.agents.specWriters.find(a => a.id === specAgentId);
-            const implAgent = settings.agents.implementers.find(a => a.id === implAgentId);
 
             const template = settings.promptTemplate;
             let prompt = \`1. \${template.header}\\n\`;
@@ -354,8 +434,8 @@ function getWebviewContent(webview, context, settings) {
                 prompt += \`   - \${req}\\n\`;
             });
             prompt += \`\\n2. \${template.planningStep}\\n\\n\`;
-            prompt += \`3. \${template.specCreationStep.replace('{agent-a}', specAgent.id)}\\n\\n\`;
-            prompt += \`4. \${template.implementationStep.replace('{agent-b}', implAgent.id)}\\n\\n\`;
+            prompt += \`3. \${template.specCreationStep.replace('{agent-a}', specAgentId)}\\n\\n\`;
+            prompt += \`4. \${template.implementationStep.replace('{agent-b}', implAgentId)}\\n\\n\`;
             prompt += \`5. \${template.finalNote}\`;
 
             document.getElementById('prompt-output').textContent = prompt;

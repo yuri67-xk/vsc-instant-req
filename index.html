@@ -30,15 +30,23 @@
                 <div class="agent-selects">
                     <div class="select-group">
                         <label for="spec-agent">仕様設計書作成エージェント</label>
-                        <select id="spec-agent" class="agent-select">
+                        <select id="spec-agent" class="agent-select" onchange="handleAgentSelect('spec')">
                             <option value="">選択してください</option>
                         </select>
+                        <div class="manual-input-wrapper">
+                            <label for="spec-agent-manual" class="manual-label">または手動入力（@なしで入力）</label>
+                            <input type="text" id="spec-agent-manual" class="agent-manual-input" placeholder="例: custom-agent">
+                        </div>
                     </div>
                     <div class="select-group">
                         <label for="impl-agent">実装担当エージェント</label>
-                        <select id="impl-agent" class="agent-select">
+                        <select id="impl-agent" class="agent-select" onchange="handleAgentSelect('impl')">
                             <option value="">選択してください</option>
                         </select>
+                        <div class="manual-input-wrapper">
+                            <label for="impl-agent-manual" class="manual-label">または手動入力（@なしで入力）</label>
+                            <input type="text" id="impl-agent-manual" class="agent-manual-input" placeholder="例: custom-implementer">
+                        </div>
                     </div>
                 </div>
             </section>
