@@ -27,13 +27,6 @@ Claude Codeの要件定義から実装まで一貫したプロンプトを即座
 
 ## インストール
 
-### VSCode Marketplaceから（公開後）
-
-1. VSCodeを開く
-2. 拡張機能ビュー（Ctrl/Cmd+Shift+X）を開く
-3. "Claude Code Prompt Generator"を検索
-4. インストールをクリック
-
 ### 手動インストール
 
 ```bash
@@ -68,7 +61,7 @@ code --install-extension claude-code-prompt-generator-1.0.0.vsix
    - 手動入力時は`@`なしで入力（自動的に付与されます）
 
 4. **プロンプトを生成**
-   - 「プロンプト作成」ボタンをクリック
+   - 「プロンプト発行」ボタンをクリック
 
 5. **コピー**
    - 「COPY」ボタンでクリップボードにコピー
@@ -107,7 +100,7 @@ VSCodeの設定（`settings.json`）で独自のエージェントを追加で�
 
 ```json
 {
-  "claudeCodePromptGenerator.agents.specWriters": [
+  "instantReq.agents.specWriters": [
     {
       "id": "@custom-architect",
       "name": "Custom Architect"
@@ -117,7 +110,7 @@ VSCodeの設定（`settings.json`）で独自のエージェントを追加で�
       "name": "API Designer"
     }
   ],
-  "claudeCodePromptGenerator.agents.implementers": [
+  "instantReq.agents.implementers": [
     {
       "id": "@custom-dev",
       "name": "Custom Developer"
@@ -132,8 +125,8 @@ VSCodeの設定（`settings.json`）で独自のエージェントを追加で�
 
 ### 設定項目
 
-- `claudeCodePromptGenerator.agents.specWriters`: 仕様書作成用エージェントのリスト
-- `claudeCodePromptGenerator.agents.implementers`: 実装用エージェントのリスト
+- `instantReq.agents.specWriters`: 仕様書作成用エージェントのリスト
+- `instantReq.agents.implementers`: 実装用エージェントのリスト
 
 各エージェントは以下の形式：
 ```json
@@ -146,18 +139,22 @@ VSCodeの設定（`settings.json`）で独自のエージェントを追加で�
 ## 生成されるプロンプトの形式
 
 ```
-1. 以下の要件に基づいて機能改修したい。
+1. 以下の要件に基づいて機能を開発したい。
    - 要件1
    - 要件2
    - 要件3
 
-2. 上記の要件をPlanningすること。
+2. 上記の要件を詳細にPlanningして、開発計画を提示すること。
 
-3. ユーザーがPlanningを承認したら、@architectにdocs/specs/配下に仕様書を作成させる（specs/配下に分類可能な既存フォルダがあるかを確認し、ない場合は新規作成・ある場合はフォルダへ保存）
+3. ユーザーがPlanningを承認したら、docs/specs/配下の適切なフォルダを選定し（既存フォルダの確認・新規作成判断を含む）、仕様設計書の保存先を決定すること。
 
-4. ドキュメント保存後、その仕様設計書に基づいて、@backend-devに実装を行わせる。
+4. 保存先決定後、{agent-a}に詳細な仕様設計書を作成させること。仕様書には実装方針、API設計、データ構造、テストケース詳細を含めること。
 
-5. 実装完了後はユーザーがテストするので、Git Commitを自動で行わないこと。
+5. 仕様設計書が作成されたら、{agent-b}にその仕様設計書に基づいて実装を行わせること。
+
+6. 実装完了後、ユーザーがテストを行うための簡潔なテストケース概要を提示すること。詳細なテストケースは仕様設計書に記載済みのため、ここでは要点のみ。
+
+7. 【重要】Git Commitは絶対に自動実行しないこと。ユーザーが動作確認後に手動でCommitを行う。
 ```
 
 ## 開発
@@ -247,7 +244,6 @@ Yuri QA67
 
 - [GitHub Repository](https://github.com/yourusername/claude-code-prompt-generator)
 - [Issues](https://github.com/yourusername/claude-code-prompt-generator/issues)
-- [VSCode Marketplace](#) (公開後)
 
 ## バージョン履歴
 

@@ -54,9 +54,50 @@
           ],
           "description": "実装用エージェントのリスト"
         },
+        "instantReq.agents.issueExplorers": {
+          "type": "array",
+          "default": [
+            {
+              "id": "@agent-explore",
+              "name": "Issue Explorer"
+            }
+          ],
+          "description": "課題探索用エージェントのリスト"
+        },
+        "instantReq.agents.systemArchitects": {
+          "type": "array",
+          "default": [
+            {
+              "id": "@agent-system-architect",
+              "name": "System Architect"
+            }
+          ],
+          "description": "システムアーキテクト用エージェントのリスト"
+        },
+        "instantReq.agents.seniorEngineers": {
+          "type": "array",
+          "default": [
+            {
+              "id": "@agent-senior-engineer",
+              "name": "Senior Engineer"
+            }
+          ],
+          "description": "シニアエンジニア用エージェントのリスト"
+        },
+        "instantReq.agents.codeReviewers": {
+          "type": "array",
+          "default": [
+            {
+              "id": "@agent-code-review-pro",
+              "name": "Code Review Pro"
+            }
+          ],
+          "description": "コードレビュー用エージェントのリスト"
+        },
+
         "instantReq.promptTemplate.header": {
           "type": "string",
-          "default": "以下の要件に基づいて機能を開発したい。",
+          "default": "以下の要件に基づいて機能を開発すること。",
           "description": "プロンプトのヘッダー部分"
         },
         "instantReq.promptTemplate.planningStep": {
@@ -64,30 +105,70 @@
           "default": "上記の要件を詳細にPlanningして、開発計画を提示すること。",
           "description": "プランニングステップの説明"
         },
-        "instantReq.promptTemplate.specLocationStep": {
+        "instantReq.promptTemplate.specStep": {
           "type": "string",
-          "default": "ユーザーがPlanningを承認したら、docs/specs/配下の適切なフォルダを選定し（既存フォルダの確認・新規作成判断を含む）、仕様設計書の保存先を決定すること。",
-          "description": "仕様書保存先選定ステップ"
-        },
-        "instantReq.promptTemplate.specCreationStep": {
-          "type": "string",
-          "default": "保存先決定後、{agent-a}に詳細な仕様設計書を作成させること。仕様書には実装方針、API設計、データ構造、テストケース詳細を含めること。",
-          "description": "仕様書作成ステップの説明"
+          "default": "Planning結果をユーザーが承認したら、{agent-a}に仕様設計書を作成させること。仕様設計書の作成にあたり、docs/specs/フォルダ配下にあるサブフォルダへ仕様設計書を保存すること。最適なサブフォルダが存在しない場合は、新規にサブフォルダを作成すること。仕様設計書は後段処理で参照されるため、正確かつ詳細に記述すること。仕様設計書には、実装方針、API設計、データ構造、テストケースも含めること。",
+          "description": "仕様設計書作成ステップ"
         },
         "instantReq.promptTemplate.implementationStep": {
           "type": "string",
-          "default": "仕様設計書が作成されたら、{agent-b}にその仕様書に基づいて実装を行わせること。",
+          "default": "仕様設計書の作成が完了したら、{agent-b}にその仕様設計書に基づいて実装を行うこと。",
           "description": "実装ステップの説明"
         },
-        "instantReq.promptTemplate.testingStep": {
+        "instantReq.promptTemplate.codeReviewStep": {
           "type": "string",
-          "default": "実装完了後、ユーザーがテストを行うための簡潔なテストケース概要を提示すること。詳細なテストケースは仕様設計書に記載済みのため、ここでは要点のみ。",
-          "description": "テストケース提示ステップ"
+          "default": "実装が完了したら、{agent-c}を起動して、コードレビューを実施すること。",
+          "description": "コードレビューステップの説明"
+        },
+        "instantReq.promptTemplate.deliveryStep": {
+          "type": "string",
+          "default": "コードレビューが完了したら、ユーザーに最終成果物を提出すること。簡便な成果報告を添えること。簡便なテストケース概要を添えること。Git Commit Messageの提案を添えること。",
+          "description": "成果物提出ステップの説明"
         },
         "instantReq.promptTemplate.restrictions": {
           "type": "string",
-          "default": "【重要】Git Commitは絶対に自動実行しないこと。ユーザーが動作確認後に手動でCommitを行う。",
+          "default": "各エージェントの出力は必ず次のエージェントへのインプットとして使用されるため、正確かつ詳細に記述すること。成果物提出後は、ユーザーがテストを行うため、Git Commitを実行しないこと。",
           "description": "制約事項・拒否事項"
+        },
+        "instantReq.issueTemplate.header": {
+          "type": "string",
+          "default": "以下の課題を探索し、改善策を提示してください。",
+          "description": "課題探索プロンプトのヘッダー部分"
+        },
+        "instantReq.issueTemplate.explorationStep": {
+          "type": "string",
+          "default": "上記の課題を{agent-explore}エージェントで探索すること。",
+          "description": "課題探索ステップ"
+        },
+        "instantReq.issueTemplate.planningStep": {
+          "type": "string",
+          "default": "explore エージェントの出力結果に基づいて、改善策をPlanningすること。",
+          "description": "改善計画ステップ"
+        },
+        "instantReq.issueTemplate.specStep": {
+          "type": "string",
+          "default": "Planning結果をユーザーが承認したら、{agent-system-architect}エージェントで仕様設計書を作成すること。仕様設計書の作成にあたり、docs/specs/フォルダ配下にあるサブフォルダへ仕様設計書を保存すること。最適なサブフォルダが存在しない場合は、新規にサブフォルダを作成すること。仕様設計書は後段処理で参照されるため、正確かつ詳細に記述すること。仕様設計書には、テストケースも含めること。",
+          "description": "仕様設計書作成ステップ"
+        },
+        "instantReq.issueTemplate.implementationStep": {
+          "type": "string",
+          "default": "仕様設計書の作成が完了したら、{agent-senior-engineer}エージェントを起動して、仕様設計書に基づいて実装を行うこと。",
+          "description": "実装ステップ"
+        },
+        "instantReq.issueTemplate.codeReviewStep": {
+          "type": "string",
+          "default": "実装が完了したら、{agent-code-review-pro}エージェントを起動して、コードレビューを実施すること。",
+          "description": "コードレビューステップ"
+        },
+        "instantReq.issueTemplate.deliveryStep": {
+          "type": "string",
+          "default": "コードレビューが完了したら、ユーザーに最終成果物を提出すること。簡便な成果報告を添えること。簡便なテストケース概要を添えること。Git Commit Messageの提案を添えること。",
+          "description": "成果物提出ステップ"
+        },
+        "instantReq.issueTemplate.restrictions": {
+          "type": "string",
+          "default": "各エージェントの出力は必ず次のエージェントへのインプットとして使用されるため、正確かつ詳細に記述すること。成果物提出後は、ユーザーがテストを行うため、Git Commitを実行しないこと。",
+          "description": "課題探索の制約事項"
         }
       }
     }
