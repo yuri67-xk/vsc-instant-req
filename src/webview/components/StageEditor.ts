@@ -88,7 +88,7 @@ export class StageEditor {
 
         const number = document.createElement('div');
         number.className = 'stage-number';
-        number.textContent = `Stage ${index + 1}`;
+        number.textContent = `ステージ ${index + 1}`;
         header.appendChild(number);
 
         const removeBtn = document.createElement('button');
@@ -120,7 +120,7 @@ export class StageEditor {
         // SubStage追加ボタン
         const addSubstageBtn = document.createElement('button');
         addSubstageBtn.className = 'btn-add-substage';
-        addSubstageBtn.innerHTML = '<i class="codicon codicon-add"></i> SubStageを追加';
+        addSubstageBtn.innerHTML = '<i class="codicon codicon-add"></i> サブステージを追加';
         addSubstageBtn.addEventListener('click', () => this.addSubstage(index));
         content.appendChild(addSubstageBtn);
 
