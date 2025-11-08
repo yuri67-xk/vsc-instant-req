@@ -11,7 +11,7 @@
     "Other"
   ],
   "activationEvents": [],
-  "main": "./extension.js",
+  "main": "./out/extension.js",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
@@ -93,95 +93,30 @@
             }
           ],
           "description": "コードレビュー用エージェントのリスト"
-        },
-
-        "instantReq.promptTemplate.header": {
-          "type": "string",
-          "default": "以下の要件に基づいて機能を開発すること。",
-          "description": "プロンプトのヘッダー部分"
-        },
-        "instantReq.promptTemplate.planningStep": {
-          "type": "string", 
-          "default": "上記の要件を詳細にPlanningして、開発計画を提示すること。",
-          "description": "プランニングステップの説明"
-        },
-        "instantReq.promptTemplate.specStep": {
-          "type": "string",
-          "default": "Planning結果をユーザーが承認したら、{agent-a}に仕様設計書を作成させること。仕様設計書の作成にあたり、docs/specs/フォルダ配下にあるサブフォルダへ仕様設計書を保存すること。最適なサブフォルダが存在しない場合は、新規にサブフォルダを作成すること。仕様設計書は後段処理で参照されるため、正確かつ詳細に記述すること。仕様設計書には、実装方針、API設計、データ構造、テストケースも含めること。",
-          "description": "仕様設計書作成ステップ"
-        },
-        "instantReq.promptTemplate.implementationStep": {
-          "type": "string",
-          "default": "仕様設計書の作成が完了したら、{agent-b}にその仕様設計書に基づいて実装を行うこと。",
-          "description": "実装ステップの説明"
-        },
-        "instantReq.promptTemplate.codeReviewStep": {
-          "type": "string",
-          "default": "実装が完了したら、{agent-c}を起動して、コードレビューを実施すること。",
-          "description": "コードレビューステップの説明"
-        },
-        "instantReq.promptTemplate.deliveryStep": {
-          "type": "string",
-          "default": "コードレビューが完了したら、ユーザーに最終成果物を提出すること。簡便な成果報告を添えること。簡便なテストケース概要を添えること。Git Commit Messageの提案を添えること。",
-          "description": "成果物提出ステップの説明"
-        },
-        "instantReq.promptTemplate.restrictions": {
-          "type": "string",
-          "default": "各エージェントの出力は必ず次のエージェントへのインプットとして使用されるため、正確かつ詳細に記述すること。成果物提出後は、ユーザーがテストを行うため、Git Commitを実行しないこと。",
-          "description": "制約事項・拒否事項"
-        },
-        "instantReq.issueTemplate.header": {
-          "type": "string",
-          "default": "以下の課題を探索し、改善策を提示してください。",
-          "description": "課題探索プロンプトのヘッダー部分"
-        },
-        "instantReq.issueTemplate.explorationStep": {
-          "type": "string",
-          "default": "上記の課題を{agent-explore}エージェントで探索すること。",
-          "description": "課題探索ステップ"
-        },
-        "instantReq.issueTemplate.planningStep": {
-          "type": "string",
-          "default": "explore エージェントの出力結果に基づいて、改善策をPlanningすること。",
-          "description": "改善計画ステップ"
-        },
-        "instantReq.issueTemplate.specStep": {
-          "type": "string",
-          "default": "Planning結果をユーザーが承認したら、{agent-system-architect}エージェントで仕様設計書を作成すること。仕様設計書の作成にあたり、docs/specs/フォルダ配下にあるサブフォルダへ仕様設計書を保存すること。最適なサブフォルダが存在しない場合は、新規にサブフォルダを作成すること。仕様設計書は後段処理で参照されるため、正確かつ詳細に記述すること。仕様設計書には、テストケースも含めること。",
-          "description": "仕様設計書作成ステップ"
-        },
-        "instantReq.issueTemplate.implementationStep": {
-          "type": "string",
-          "default": "仕様設計書の作成が完了したら、{agent-senior-engineer}エージェントを起動して、仕様設計書に基づいて実装を行うこと。",
-          "description": "実装ステップ"
-        },
-        "instantReq.issueTemplate.codeReviewStep": {
-          "type": "string",
-          "default": "実装が完了したら、{agent-code-review-pro}エージェントを起動して、コードレビューを実施すること。",
-          "description": "コードレビューステップ"
-        },
-        "instantReq.issueTemplate.deliveryStep": {
-          "type": "string",
-          "default": "コードレビューが完了したら、ユーザーに最終成果物を提出すること。簡便な成果報告を添えること。簡便なテストケース概要を添えること。Git Commit Messageの提案を添えること。",
-          "description": "成果物提出ステップ"
-        },
-        "instantReq.issueTemplate.restrictions": {
-          "type": "string",
-          "default": "各エージェントの出力は必ず次のエージェントへのインプットとして使用されるため、正確かつ詳細に記述すること。成果物提出後は、ユーザーがテストを行うため、Git Commitを実行しないこと。",
-          "description": "課題探索の制約事項"
         }
       }
     }
   },
   "scripts": {
-    "lint": "eslint .",
-    "pretest": "npm run lint",
-    "test": "node ./test/runTest.js"
+    "vscode:prepublish": "npm run compile",
+    "compile": "npm run compile:extension && npm run compile:webview",
+    "compile:extension": "tsc -p ./",
+    "compile:webview": "node build-webview.js",
+    "watch": "npm run watch:extension & npm run watch:webview",
+    "watch:extension": "tsc -watch -p ./",
+    "watch:webview": "node build-webview.js --watch",
+    "lint": "eslint src --ext ts",
+    "pretest": "npm run compile && npm run lint",
+    "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
-    "@types/vscode": "^1.80.0",
     "@types/node": "^20.x",
-    "eslint": "^8.x"
+    "@types/vscode": "^1.80.0",
+    "@typescript-eslint/eslint-plugin": "^6.x",
+    "@typescript-eslint/parser": "^6.x",
+    "esbuild": "^0.25.12",
+    "eslint": "^8.x",
+    "typescript": "^5.3.0"
   },
   "repository": {
     "type": "git",
@@ -196,5 +131,8 @@
     "subagents",
     "plan-mode"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@vscode/codicons": "^0.0.41"
+  }
 }

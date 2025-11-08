@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src {{cspSource}} 'unsafe-inline'; font-src {{cspSource}}; script-src 'nonce-{{nonce}}';">
+    <title>Instant Req</title>
+    <link rel="stylesheet" href="{{codiconsUri}}">
+    <link rel="stylesheet" href="{{stylesUri}}">
+</head>
+<body>
+    <div class="tabs">
+        <button class="tab active">要件定義</button>
+        <button class="tab">課題探索</button>
+    </div>
+
+    <!-- 要件定義タブ -->
+    <div id="requirements-tab" class="tab-content active">
+        <!-- ネストされたタブ -->
+        <div class="nested-tabs" data-parent="requirements">
+            <button class="nested-tab active" data-nested="input">入力</button>
+            <button class="nested-tab" data-nested="agents">エージェント</button>
+        </div>
+
+        <!-- 入力タブコンテンツ -->
+        <div id="requirements-input-tab" class="nested-tab-content active">
+            <div class="section">
+                <div class="section-title">機能要件リスト</div>
+                <div id="requirements-container">
+                    <div class="requirement-row">
+                        <textarea class="requirement-input" placeholder="機能要件を入力"></textarea>
+                        <button class="btn-remove">
+                            <i class="codicon codicon-close"></i>
+                        </button>
+                    </div>
+                </div>
+                <button class="btn-add">
+                    <i class="codicon codicon-add"></i> 要件を追加
+                </button>
+            </div>
+        </div>
+
+        <!-- エージェントタブコンテンツ -->
+        <div id="requirements-agents-tab" class="nested-tab-content">
+            <div class="section">
+                <div class="section-title">エージェント選択</div>
+                <!-- 動的エージェント選択 (Stageから自動生成) -->
+                <div id="dynamic-agents-container"></div>
+            </div>
+        </div>
+
+        <!-- ボタングループ -->
+        <div class="section">
+            <div class="button-group">
+                <button class="btn-primary">プロンプト発行</button>
+                <button class="btn-secondary">CLEAR</button>
+            </div>
+        </div>
+
+        <!-- ステージ設定ボタン -->
+        <div class="settings-row">
+            <button class="btn-settings" title="ステージ設定">
+                <i class="codicon codicon-settings-gear"></i> ステージ設定
+            </button>
+        </div>
+    </div>
+
+    <!-- 課題探索タブ -->
+    <div id="issues-tab" class="tab-content">
+        <!-- ネストされたタブ -->
+        <div class="nested-tabs" data-parent="issues">
+            <button class="nested-tab active" data-nested="input">入力</button>
+            <button class="nested-tab" data-nested="agents">エージェント</button>
+        </div>
+
+        <!-- 入力タブコンテンツ -->
+        <div id="issues-input-tab" class="nested-tab-content active">
+            <div class="section">
+                <div class="section-title">課題リスト</div>
+                <div id="issues-container">
+                    <div class="issue-row">
+                        <textarea class="issue-input" placeholder="課題を入力"></textarea>
+                        <button class="btn-remove">
+                            <i class="codicon codicon-close"></i>
+                        </button>
+                    </div>
+                </div>
+                <button class="btn-add">
+                    <i class="codicon codicon-add"></i> 課題を追加
+                </button>
+            </div>
+        </div>
+
+        <!-- エージェントタブコンテンツ -->
+        <div id="issues-agents-tab" class="nested-tab-content">
+            <div class="section">
+                <div class="section-title">エージェント選択</div>
+                <!-- 動的エージェント選択 (Stageから自動生成) -->
+                <div id="issues-dynamic-agents-container"></div>
+            </div>
+        </div>
+
+        <!-- ボタングループ -->
+        <div class="section">
+            <div class="button-group">
+                <button class="btn-primary">プロンプト発行</button>
+                <button class="btn-secondary">CLEAR</button>
+            </div>
+        </div>
+
+        <!-- ステージ設定ボタン -->
+        <div class="settings-row">
+            <button class="btn-settings" title="ステージ設定">
+                <i class="codicon codicon-settings-gear"></i> ステージ設定
+            </button>
+        </div>
+    </div>
+
+    <div class="output-section" id="output-section" style="display: none;">
+        <div class="output-header">
+            <div class="output-title">プロンプト本文</div>
+            <button class="btn-copy">COPY</button>
+        </div>
+        <pre id="prompt-output" class="prompt-display"></pre>
+    </div>
+
+    <!-- Stage設定モーダル -->
+    <div id="stage-settings-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Stage設定</h3>
+                <button class="btn-close-modal">
+                    <i class="codicon codicon-close"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="stages-container"></div>
+                <button class="btn-add-stage">
+                    <i class="codicon codicon-add"></i> Stageを追加
+                </button>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary btn-modal-close">キャンセル</button>
+                <button class="btn-secondary btn-modal-reset">デフォルトに戻す</button>
+                <button class="btn-primary btn-modal-save">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script nonce="{{nonce}}" src="{{scriptUri}}"></script>
+</body>
+</html>
