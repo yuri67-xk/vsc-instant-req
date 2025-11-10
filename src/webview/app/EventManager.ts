@@ -40,11 +40,11 @@ export class EventManager {
     /**
      * ステージ設定ボタンのイベントリスナーを設定
      */
-    public setupStageSettingsButtons(onOpenSettings: (tabType: TabType) => void): void {
+    public setupStageSettingsButtons(getCurrentTab: () => TabType, onOpenSettings: (tabType: TabType) => void): void {
         querySelectorAll<HTMLButtonElement>('.btn-settings').forEach(btn => {
             btn.addEventListener('click', () => {
-                // ここで現在のタブを取得する必要がある（外部から渡される）
-                onOpenSettings('requirements'); // デフォルト値
+                const currentTab = getCurrentTab();
+                onOpenSettings(currentTab);
             });
         });
     }

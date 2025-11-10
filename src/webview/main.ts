@@ -84,10 +84,10 @@ class InstantReqApp {
         this.eventManager.setupGeneratePromptButtons(() => this.generatePrompt());
         this.eventManager.setupEditButton(() => this.promptGenerator.toggleEditMode());
         this.eventManager.setupClearButtons(() => this.clearAll());
-        this.eventManager.setupStageSettingsButtons((tabType) => {
-            const currentTab = this.tabManager.getCurrentTab();
-            this.stageEditor.open(currentTab);
-        });
+        this.eventManager.setupStageSettingsButtons(
+            () => this.tabManager.getCurrentTab(),
+            (tabType) => this.stageEditor.open(tabType)
+        );
         this.eventManager.setupStagesSavedListener((tabType, stages) => {
             this.updateAgentSelectors(tabType);
         });

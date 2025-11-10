@@ -50,6 +50,53 @@ export class AgentValueHandler {
     }
 
     /**
+     * 既存のエージェント値を設定
+     */
+    public setExistingValue(placeholder: string): void {
+        const selectElement = getElementById<HTMLSelectElement>(`dynamic-${placeholder}`);
+        const manualInput = getElementById<HTMLInputElement>(`dynamic-${placeholder}-manual`);
+        const manualWrapper = getElementById<HTMLElement>(`manual-wrapper-${placeholder}`);
+
+        if (!selectElement || !manualInput || !manualWrapper) return;
+
+        // 既存のセレクト要素から値を復元
+        const existingSelect = document.getElementById(`dynamic-${placeholder}`) as HTMLSelectElement;
+        const existingManual = document.getElementById(`dynamic-${placeholder}-manual`) as HTMLInputElement;
+
+        if (existingSelect) {
+            selectElement.value = existingSelect.value;
+            
+            if (existingSelect.value === '__custom__' && existingManual) {
+                manualInput.value = existingManual.value;
+                manualWrapper.style.display = 'block';
+            }
+        }
+    }
+
+    /**
+     * 指定されたエージェント値を設定
+     */
+    public setAgentValue(placeholder: string, value: string): void {
+        const selectElement = getElementById<HTMLSelectElement>(`dynamic-${placeholder}`);
+        const manualInput = getElementById<HTMLInputElement>(`dynamic-${placeholder}-manual`);
+        const manualWrapper = getElementById<HTMLElement>(`manual-wrapper-${placeholder}`);
+
+        if (!selectElement || !manualInput || !manualWrapper) return;
+
+        if (value.startsWith('@')) {
+            // カスタムエージェントの場合
+            selectElement.value = '__custom__';
+            manualInput.value = value;
+            manualWrapper.style.display = 'block';
+        } else {
+            // プリセットエージェントの場合
+            selectElement.value = value;
+            manualInput.value = '';
+            manualWrapper.style.display = 'none';
+        }
+    }
+
+    /**
      * 全てのエージェント値を取得
      */
     public getAllAgentValues(placeholders: Iterable<string>): Map<string, string> {

@@ -39,6 +39,11 @@ export class AgentSelector {
         const container = document.getElementById(containerId);
         if (!container) return;
 
+        // 既存の値を保存
+        const existingValues = this.valueHandler.getAllAgentValues(
+            this.dataManager.getAllDynamicAgents().keys()
+        );
+
         container.innerHTML = '';
 
         const dynamicAgents = this.dataManager.getAllDynamicAgents();
@@ -49,6 +54,11 @@ export class AgentSelector {
                 (ph) => this.valueHandler.handleSelectChange(ph)
             );
             container.appendChild(group);
+        });
+
+        // 既存の値を復元
+        existingValues.forEach((value, placeholder) => {
+            this.valueHandler.setAgentValue(placeholder, value);
         });
     }
 

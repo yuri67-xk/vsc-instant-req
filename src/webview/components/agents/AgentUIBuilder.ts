@@ -50,6 +50,9 @@ export class AgentUIBuilder {
         select.className = 'agent-select';
         select.id = `dynamic-${placeholder}`;
 
+        // 既存の選択値を保持
+        const existingValue = (document.getElementById(`dynamic-${placeholder}`) as HTMLSelectElement)?.value;
+
         // デフォルトオプション
         this.appendOption(select, '', '選択してください');
 
@@ -61,14 +64,26 @@ export class AgentUIBuilder {
         // プリセットエージェント
         if (agentInfo.agentList.length > 0) {
             this.appendPresetAgentsOptions(select, agentInfo);
-            // デフォルトで最初のエージェントを選択
-            select.value = agentInfo.agentList[0].id;
         }
 
         // カスタムオプション
         this.appendOption(select, '__custom__', 'カスタム');
 
+        // 既存の選択値を復元するか、最初のエージェントを選択
+        if (existingValue && this.isValueValid(existingValue, select)) {
+            select.value = existingValue;
+        } else if (agentInfo.agentList.length > 0) {
+            select.value = agentInfo.agentList[0].id;
+        }
+
         return select;
+    }
+
+    /**
+     * 値がセレクトボックス内に存在するか確認
+     */
+    private isValueValid(value: string, select: HTMLSelectElement): boolean {
+        return Array.from(select.options).some(option => option.value === value);
     }
 
     /**

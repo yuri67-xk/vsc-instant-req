@@ -1,5 +1,14 @@
 # 変更履歴
 
+## 1.1.1 (2025-11-10)
+- fix: ステージ設定で {agent-*} を追加しても動的にエージェントタブへエージェントが追加されないバグを修正
+- fix: ステージ設定保存時の現在のタブ認識を修正
+- improvement: エージェントセレクターの再レンダリング時に既存の選択値を保持する機能を追加
+- docs: READMEをMarketplace公開向けに簡潔化
+- docs: CHANGELOG.mdを作成してバージョン履歴を分離
+- docs: instant-req-logo.pngをREADMEに追加
+- docs: GitHubリンクをyuri67-xk/vsc-instant-reqに更新
+
 ## 1.0.0 (2025-11-10)
 - 正式リリース版
 - デュアルモードシステム（要件定義/課題探索）

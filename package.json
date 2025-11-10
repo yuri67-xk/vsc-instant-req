@@ -2,7 +2,7 @@
   "name": "instant-req",
   "displayName": "Instant Req",
   "description": "Claude Codeの要件定義から実装まで一貫したプロンプトを即座に生成",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "publisher": "yxk-dev",
   "engines": {
     "vscode": "^1.80.0"
