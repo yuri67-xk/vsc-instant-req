@@ -3,7 +3,7 @@
   "displayName": "Instant Req",
   "description": "Claude Codeの要件定義から実装まで一貫したプロンプトを即座に生成",
   "version": "1.0.0",
-  "publisher": "your-publisher-name",
+  "publisher": "yxk-dev",
   "engines": {
     "vscode": "^1.80.0"
   },
@@ -120,7 +120,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/claude-code-prompt-generator"
+    "url": "https://github.com/yuri67-xk/vsc-instant-req"
   },
   "keywords": [
     "claude",
