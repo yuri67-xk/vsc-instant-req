@@ -110,7 +110,7 @@
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
-    "@types/node": "^20.x",
+    "@types/node": "^24.x",
     "@types/vscode": "^1.80.0",
     "@typescript-eslint/eslint-plugin": "^6.x",
     "@typescript-eslint/parser": "^6.x",
