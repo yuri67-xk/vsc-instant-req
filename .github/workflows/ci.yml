@@ -63,4 +63,6 @@ jobs:
         fi
         
     - name: Validate VSCode extension package
-      run: npx vsce package --dry-run
+      run: |
+        npx @vscode/vsce package --out /tmp/test-package.vsix
+        rm /tmp/test-package.vsix
