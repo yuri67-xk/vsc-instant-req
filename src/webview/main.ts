@@ -1,10 +1,12 @@
-import type { Settings, StagesLoadedMessage } from './types/webview';
+import type { Settings } from './types/webview';
 import { TabManager } from './components/TabManager';
 import { AgentSelector } from './components/AgentSelector';
 import { StageEditor } from './components/StageEditor';
 import { PromptGenerator } from './components/PromptGenerator';
 import { RequirementsManager } from './components/RequirementsManager';
 import { IssuesManager } from './components/IssuesManager';
+import { EventManager } from './app/EventManager';
+import { MessageHandler } from './app/MessageHandler';
 import { vscode } from './utils/vscodeApi';
 
 // グローバル設定（HTMLから注入される）
@@ -15,7 +17,7 @@ declare global {
 }
 
 /**
- * アプリケーションクラス
+ * アプリケーションクラス（リファクタリング版）
  */
 class InstantReqApp {
     // コンポーネント
@@ -27,10 +29,12 @@ class InstantReqApp {
     private requirementsManager: RequirementsManager;
     private issuesManager: IssuesManager;
 
-    // 設定
-    private settings: Settings;
+    // 管理クラス
+    private eventManager: EventManager;
+    private messageHandler: MessageHandler;
 
-    // 現在のプロンプト
+    // 設定と状態
+    private settings: Settings;
     private currentPrompt: string = '';
 
     constructor() {
@@ -44,6 +48,14 @@ class InstantReqApp {
         this.promptGenerator = new PromptGenerator();
         this.requirementsManager = new RequirementsManager();
         this.issuesManager = new IssuesManager();
+
+        // 管理クラスの初期化
+        this.eventManager = new EventManager();
+        this.messageHandler = new MessageHandler(
+            this.requirementsAgentSelector,
+            this.issuesAgentSelector,
+            this.stageEditor
+        );
     }
 
     /**
@@ -58,7 +70,9 @@ class InstantReqApp {
 
         // イベントリスナーの設定
         this.setupEventListeners();
-        this.setupMessageListener();
+
+        // メッセージリスナーの設定
+        this.messageHandler.setupMessageListener();
 
         console.log('Instant Req initialized');
     }
@@ -67,86 +81,20 @@ class InstantReqApp {
      * イベントリスナーの設定
      */
     private setupEventListeners(): void {
-        // プロンプト発行ボタン
-        const primaryButtons = document.querySelectorAll('.btn-primary');
-        primaryButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                this.generatePrompt();
-            });
+        this.eventManager.setupGeneratePromptButtons(() => this.generatePrompt());
+        this.eventManager.setupEditButton(() => this.promptGenerator.toggleEditMode());
+        this.eventManager.setupClearButtons(() => this.clearAll());
+        this.eventManager.setupStageSettingsButtons((tabType) => {
+            const currentTab = this.tabManager.getCurrentTab();
+            this.stageEditor.open(currentTab);
         });
-
-        // 編集ボタン
-        const editButton = document.getElementById('btn-edit');
-        if (editButton) {
-            editButton.addEventListener('click', () => {
-                this.promptGenerator.toggleEditMode();
-            });
-        }
-
-        // CLEARボタン
-        const secondaryButtons = document.querySelectorAll('.btn-secondary');
-        secondaryButtons.forEach(button => {
-            const buttonElement = button as HTMLButtonElement;
-            if (buttonElement.textContent?.includes('CLEAR')) {
-                buttonElement.addEventListener('click', () => {
-                    this.clearAll();
-                });
-            }
-        });
-
-        // ステージ設定ボタン
-        document.querySelectorAll('.btn-settings').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const currentTab = this.tabManager.getCurrentTab();
-                this.stageEditor.open(currentTab);
-            });
-        });
-
-        // ステージ保存時のイベント
-        window.addEventListener('stagesSaved', ((event: CustomEvent) => {
-            const { tabType, stages } = event.detail;
+        this.eventManager.setupStagesSavedListener((tabType, stages) => {
             this.updateAgentSelectors(tabType);
-        }) as EventListener);
-
-        // コピーボタン
-        this.promptGenerator.setupCopyButton(() => this.currentPrompt);
-    }
-
-    /**
-     * メッセージリスナーの設定
-     */
-    private setupMessageListener(): void {
-        window.addEventListener('message', event => {
-            const message = event.data;
-
-            switch (message.command) {
-                case 'stagesLoaded':
-                    this.handleStagesLoaded(message as StagesLoadedMessage);
-                    break;
-            }
         });
-    }
-
-    /**
-     * Stagesロード時の処理
-     */
-    private handleStagesLoaded(message: StagesLoadedMessage): void {
-        // 最近使用したエージェントを設定
-        if (message.recentAgents) {
-            this.requirementsAgentSelector.setRecentAgents(message.recentAgents);
-            this.issuesAgentSelector.setRecentAgents(message.recentAgents);
-        }
-
-        if (message.requirementsStages && message.issuesStages) {
-            this.stageEditor.setStages(message.requirementsStages, message.issuesStages);
-
-            // エージェントセレクターを更新
-            this.requirementsAgentSelector.detectDynamicAgents(message.requirementsStages);
-            this.requirementsAgentSelector.render('dynamic-agents-container');
-
-            this.issuesAgentSelector.detectDynamicAgents(message.issuesStages);
-            this.issuesAgentSelector.render('issues-dynamic-agents-container');
-        }
+        this.eventManager.setupCopyButton(
+            () => this.currentPrompt,
+            (prompt) => this.promptGenerator.copyToClipboard(prompt)
+        );
     }
 
     /**
@@ -175,18 +123,14 @@ class InstantReqApp {
             const stages = this.stageEditor.getRequirementsStages();
             const dynamicAgents = this.requirementsAgentSelector.getAllAgentValues();
 
-            // 選択されたカスタムエージェントを履歴に保存
             this.saveSelectedAgentsToHistory(dynamicAgents);
-
             this.currentPrompt = this.promptGenerator.generate(requirements, stages, dynamicAgents);
         } else {
             const issues = this.issuesManager.getIssues();
             const stages = this.stageEditor.getIssuesStages();
             const dynamicAgents = this.issuesAgentSelector.getAllAgentValues();
 
-            // 選択されたカスタムエージェントを履歴に保存
             this.saveSelectedAgentsToHistory(dynamicAgents);
-
             this.currentPrompt = this.promptGenerator.generate(issues, stages, dynamicAgents);
         }
 
@@ -200,7 +144,6 @@ class InstantReqApp {
      */
     private saveSelectedAgentsToHistory(dynamicAgents: Map<string, string>): void {
         dynamicAgents.forEach(agentId => {
-            // カスタムエージェント（@で始まる）のみ履歴に保存
             if (agentId.startsWith('@')) {
                 vscode.saveRecentAgent(agentId);
             }
