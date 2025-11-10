@@ -57,14 +57,24 @@ export class IssuesManager {
     }
 
     /**
-     * 全ての課題をクリア
+     * 全ての課題をクリア（追加した入力欄も削除し、初期状態に戻す）
      */
     public clearAll(): void {
         if (!this.container) return;
 
-        const textareas = this.container.querySelectorAll<HTMLTextAreaElement>('.issue-input');
-        textareas.forEach(textarea => {
-            textarea.value = '';
+        const rows = this.container.querySelectorAll<HTMLElement>('.issue-row');
+
+        // 最初の1つを除いて全ての行を削除
+        rows.forEach((row, index) => {
+            if (index > 0) {
+                row.remove();
+            }
         });
+
+        // 残った最初の入力欄の値をクリア
+        const firstTextarea = this.container.querySelector<HTMLTextAreaElement>('.issue-input');
+        if (firstTextarea) {
+            firstTextarea.value = '';
+        }
     }
 }
