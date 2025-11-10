@@ -1,0 +1,27 @@
+# CODEOWNERS
+# このリポジトリのオーナーシップを定義します
+
+# デフォルトオーナー
+* @yuri67-xk
+
+# 重要ファイルのオーナー指定
+package.json @yuri67-xk
+package-lock.json @yuri67-xk
+tsconfig.json @yuri67-xk
+tsconfig.webview.json @yuri67-xk
+
+# ソースコードのオーナー
+src/ @yuri67-xk
+
+# 設定ファイルのオーナー
+.github/ @yuri67-xk
+.vscode/ @yuri67-xk
+
+# ドキュメントのオーナー
+README.md @yuri67-xk
+CHANGELOG.md @yuri67-xk
+LICENSE @yuri67-xk
+
+# ビルド関連ファイルのオーナー
+build-webview.js @yuri67-xk
+out/ @yuri67-xk

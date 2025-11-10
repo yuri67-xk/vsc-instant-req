@@ -1,0 +1,24 @@
+name: Tag Protection Ruleset
+on:
+  tag_protection_rule:
+    patterns:
+      - 'v*.*'
+
+type: tag
+
+rules:
+  - name: 'Require signed commits for releases'
+    type: commit_signing
+    parameters:
+      requires_commit_signing: true
+      
+  - name: 'Require release approval'
+    type: approval
+    parameters:
+      required_approving_review_count: 1
+      dismiss_stale_reviews: false
+      
+  - name: 'Block force push to tags'
+    type: force_push
+    parameters:
+      block: true

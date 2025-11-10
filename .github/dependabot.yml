@@ -1,0 +1,20 @@
+# Dependabot設定
+# 依存関係の脆弱性を自動チェックし、プルリクエストを作成
+
+version: 2
+updates:
+  # npmパッケージの更新を監視
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "yuri67-xk"
+    assignees:
+      - "yuri67-xk"
+    commit-message:
+      prefix: "chore"
+      include: "scope"

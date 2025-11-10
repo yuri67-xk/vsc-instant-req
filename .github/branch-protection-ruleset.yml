@@ -1,0 +1,34 @@
+name: Branch Protection Ruleset
+on:
+  branch_protection_rule:
+    patterns:
+      - main
+
+type: branch
+
+rules:
+  - name: 'Require 2 reviewers for main branch'
+    type: pull_request
+    parameters:
+      required_approving_review_count: 2
+      dismiss_stale_reviews: false
+      require_code_owner_reviews: true
+      require_last_push_approval: false
+      
+  - name: 'Require status checks to pass'
+    type: status
+    parameters:
+      required_status_checks:
+        - context: 'Build and Test'
+        - context: 'Security Checks'
+      strict_required: true
+      
+  - name: 'Require conversation resolution'
+    type: pull_request
+    parameters:
+      require_up_to_date: true
+      
+  - name: 'Restrict who can push to main'
+    type: commit_signing
+    parameters:
+      requires_commit_signing: true

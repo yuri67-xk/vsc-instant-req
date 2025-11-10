@@ -1,0 +1,47 @@
+name: Pull Request Ruleset
+on:
+  pull_request:
+    base:
+      - main
+
+type: pull_request
+
+rules:
+  - name: 'Require description'
+    type: description
+    parameters:
+      min_length: 10
+      
+  - name: 'Limit PR size'
+    type: size
+    parameters:
+      max_changed_files: 50
+      
+  - name: 'Require issue linking'
+    type: issue_links
+    parameters:
+      requires_issue_link: false  # オプション
+      
+  - name: 'Require assignee'
+    type: assignee
+    parameters:
+      requires_assignee: true
+      
+  - name: 'Require labels'
+    type: label
+    parameters:
+      requires_label: true
+      allowed_labels:
+        - 'bug'
+        - 'enhancement'
+        - 'documentation'
+        - 'feature'
+        - 'fix'
+        - 'chore'
+        - 'security'
+        - 'dependencies'
+        
+  - name: 'Check for conflicts'
+    type: merge_conflicts
+    parameters:
+      block_merge: true
