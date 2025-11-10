@@ -166,6 +166,11 @@ export class AgentSelector {
         customOption.textContent = 'カスタム';
         select.appendChild(customOption);
 
+        // デフォルトで最初のエージェントを選択（リストが存在する場合）
+        if (agentInfo.agentList.length > 0) {
+            select.value = agentInfo.agentList[0].id;
+        }
+
         select.addEventListener('change', () => {
             this.handleAgentSelect(placeholder);
         });

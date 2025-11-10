@@ -74,10 +74,10 @@ export class PromptGenerator {
      */
     public display(prompt: string): void {
         const outputSection = document.getElementById('output-section');
-        const promptOutput = document.getElementById('prompt-output');
+        const promptOutput = document.getElementById('prompt-output') as HTMLTextAreaElement;
 
         if (outputSection && promptOutput) {
-            promptOutput.textContent = prompt;
+            promptOutput.value = prompt;
             outputSection.style.display = 'block';
         }
     }
@@ -89,6 +89,53 @@ export class PromptGenerator {
         const outputSection = document.getElementById('output-section');
         if (outputSection) {
             outputSection.style.display = 'none';
+        }
+        // 編集モードをリセット
+        this.setEditMode(false);
+    }
+
+    /**
+     * 編集モードの切り替え
+     */
+    public toggleEditMode(): void {
+        const promptOutput = document.getElementById('prompt-output') as HTMLTextAreaElement;
+        const editButton = document.getElementById('btn-edit');
+
+        if (!promptOutput || !editButton) return;
+
+        const isReadonly = promptOutput.hasAttribute('readonly');
+
+        if (isReadonly) {
+            // 編集モードに切り替え
+            promptOutput.removeAttribute('readonly');
+            promptOutput.focus();
+            editButton.textContent = '完了';
+            editButton.classList.add('editing');
+        } else {
+            // 表示モードに切り替え
+            promptOutput.setAttribute('readonly', '');
+            editButton.textContent = '編集';
+            editButton.classList.remove('editing');
+        }
+    }
+
+    /**
+     * 編集モードを設定
+     */
+    private setEditMode(isEditing: boolean): void {
+        const promptOutput = document.getElementById('prompt-output') as HTMLTextAreaElement;
+        const editButton = document.getElementById('btn-edit');
+
+        if (!promptOutput || !editButton) return;
+
+        if (isEditing) {
+            promptOutput.removeAttribute('readonly');
+            editButton.textContent = '完了';
+            editButton.classList.add('editing');
+        } else {
+            promptOutput.setAttribute('readonly', '');
+            editButton.textContent = '編集';
+            editButton.classList.remove('editing');
         }
     }
 
@@ -106,7 +153,9 @@ export class PromptGenerator {
         const copyButton = document.querySelector('.btn-copy');
         if (copyButton) {
             copyButton.addEventListener('click', () => {
-                const prompt = getCurrentPrompt();
+                // textareaから直接値を取得（編集されている可能性があるため）
+                const promptOutput = document.getElementById('prompt-output') as HTMLTextAreaElement;
+                const prompt = promptOutput?.value || getCurrentPrompt();
                 if (prompt) {
                     this.copyToClipboard(prompt);
                 }

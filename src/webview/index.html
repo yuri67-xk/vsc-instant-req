@@ -119,9 +119,12 @@
     <div class="output-section" id="output-section" style="display: none;">
         <div class="output-header">
             <div class="output-title">プロンプト本文</div>
-            <button class="btn-copy">COPY</button>
+            <div class="output-buttons">
+                <button class="btn-edit" id="btn-edit">編集</button>
+                <button class="btn-copy">COPY</button>
+            </div>
         </div>
-        <pre id="prompt-output" class="prompt-display"></pre>
+        <textarea id="prompt-output" class="prompt-display" rows="15" readonly></textarea>
     </div>
 
     <!-- ステージ設定モーダル -->

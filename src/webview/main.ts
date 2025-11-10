@@ -75,6 +75,14 @@ class InstantReqApp {
             });
         });
 
+        // 編集ボタン
+        const editButton = document.getElementById('btn-edit');
+        if (editButton) {
+            editButton.addEventListener('click', () => {
+                this.promptGenerator.toggleEditMode();
+            });
+        }
+
         // CLEARボタン
         const secondaryButtons = document.querySelectorAll('.btn-secondary');
         secondaryButtons.forEach(button => {
