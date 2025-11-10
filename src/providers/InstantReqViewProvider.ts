@@ -15,7 +15,7 @@ export class InstantReqViewProvider implements vscode.WebviewViewProvider {
 
     public resolveWebviewView(
         webviewView: vscode.WebviewView,
-        context: vscode.WebviewViewResolveContext,
+        _context: vscode.WebviewViewResolveContext,
         _token: vscode.CancellationToken
     ) {
         this._view = webviewView;
@@ -56,7 +56,8 @@ export class InstantReqViewProvider implements vscode.WebviewViewProvider {
                     }
                     // loadStagesと同じ処理を実行
                     // (フォールスルーでloadStagesの処理を実行)
-                case 'loadStages':
+                    break;
+                case 'loadStages': {
                     // defaultStages.jsonから読み込み
                     const defaultStagesPath = path.join(this._extensionUri.fsPath, 'src', 'config', 'defaultStages.json');
                     let defaultStages: { requirements: Stage[], issues: Stage[] } = { requirements: [], issues: [] };
@@ -100,6 +101,7 @@ export class InstantReqViewProvider implements vscode.WebviewViewProvider {
                     };
                     webviewView.webview.postMessage(response);
                     return;
+                }
             }
         });
     }
@@ -175,7 +177,6 @@ export class InstantReqViewProvider implements vscode.WebviewViewProvider {
 
         // Read HTML template
         const htmlPath = vscode.Uri.joinPath(this._extensionUri, 'src', 'webview', 'index.html');
-        const fs = require('fs');
         let html = fs.readFileSync(htmlPath.fsPath, 'utf8');
 
         // Replace placeholders

@@ -37,8 +37,18 @@ jobs:
     - name: Build webview
       run: npm run compile:webview
       
+    - name: Check if tests exist
+      id: check_tests
+      run: |
+        if [ -d "out/test" ] && [ -f "out/test/runTest.js" ]; then
+          echo "tests_exist=true" >> $GITHUB_OUTPUT
+        else
+          echo "tests_exist=false" >> $GITHUB_OUTPUT
+        fi
+        
     - name: Test (if tests exist)
-      run: npm test --if-present
+      if: steps.check_tests.outputs.tests_exist == 'true'
+      run: npm test
       
     - name: Check for package.json issues
       run: |
@@ -53,4 +63,6 @@ jobs:
         fi
         
     - name: Validate VSCode extension package
-      run: npx vsce package --dry-run
+      run: |
+        npx @vscode/vsce package --out /tmp/test-package.vsix
+        rm /tmp/test-package.vsix

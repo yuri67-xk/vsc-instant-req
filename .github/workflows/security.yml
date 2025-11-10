@@ -31,7 +31,7 @@ jobs:
       uses: trufflesecurity/trufflehog@main
       with:
         path: ./
-        base: main
+        base: ${{ github.event.before }}
         head: HEAD
         
     - name: TypeScript compilation check
