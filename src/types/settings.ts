@@ -51,14 +51,17 @@ export interface Settings {
 }
 
 export interface WebviewMessage {
-    command: 'copyToClipboard' | 'saveStages' | 'loadStages' | 'resetStages';
+    command: 'copyToClipboard' | 'saveStages' | 'loadStages' | 'resetStages' | 'saveRecentAgent';
     text?: string;
     stages?: Stage[];
     tabType?: 'requirements' | 'issues';
+    agentId?: string;
+    placeholder?: string;
 }
 
 export interface StagesLoadedMessage {
     command: 'stagesLoaded';
     requirementsStages?: Stage[];
     issuesStages?: Stage[];
+    recentAgents?: string[];
 }

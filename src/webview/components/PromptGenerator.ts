@@ -6,6 +6,26 @@ import { vscode } from '../utils/vscodeApi';
  */
 export class PromptGenerator {
     /**
+     * プレースホルダーを置換する共通関数
+     */
+    private replacePlaceholders(
+        content: string,
+        dynamicAgents: Map<string, string>
+    ): string {
+        let result = content;
+
+        dynamicAgents.forEach((agentValue, placeholder) => {
+            // placeholderは{agent-xxx}形式ではなく、agent-xxx形式で渡されるため
+            // {を追加してマッチさせる
+            const escapedPlaceholder = placeholder.replace(/[{}]/g, '\\$&');
+            const regex = new RegExp(`\\{${escapedPlaceholder}\\}`, 'g');
+            result = result.replace(regex, agentValue);
+        });
+
+        return result;
+    }
+
+    /**
      * プロンプトを生成
      */
     public generate(
@@ -19,38 +39,28 @@ export class PromptGenerator {
 
         let prompt = '';
 
-        // アイテム（要件または課題）を追加
-        items.forEach((item, index) => {
-            if (item.trim()) {
-                prompt += `${index + 1}. ${item.trim()}\n`;
-            }
-        });
-
-        prompt += '\n';
-
-        // Stagesを追加
-        stages.forEach(stage => {
-            let stageContent = stage.content;
-
+        // Stagesを番号付きリストで追加
+        stages.forEach((stage, stageIndex) => {
             // 動的エージェントのプレースホルダーを置換
-            dynamicAgents.forEach((agentValue, placeholder) => {
-                const regex = new RegExp(placeholder.replace(/[{}]/g, '\\$&'), 'g');
-                stageContent = stageContent.replace(regex, agentValue);
-            });
+            const stageContent = this.replacePlaceholders(stage.content, dynamicAgents);
 
-            prompt += `${stageContent}\n`;
+            // ステージ番号を付与（1から開始）
+            prompt += `${stageIndex + 1}. ${stageContent}\n`;
+
+            // 最初のステージ（トップステージ）の場合は、その下に要件/課題をネスト
+            if (stageIndex === 0) {
+                items.forEach(item => {
+                    if (item.trim()) {
+                        prompt += `  - ${item.trim()}\n`;
+                    }
+                });
+            }
 
             // SubStagesを追加
             if (stage.substages && stage.substages.length > 0) {
                 stage.substages.forEach(substage => {
-                    let substageContent = substage.content;
-
                     // 動的エージェントのプレースホルダーを置換
-                    dynamicAgents.forEach((agentValue, placeholder) => {
-                        const regex = new RegExp(placeholder.replace(/[{}]/g, '\\$&'), 'g');
-                        substageContent = substageContent.replace(regex, agentValue);
-                    });
-
+                    const substageContent = this.replacePlaceholders(substage.content, dynamicAgents);
                     prompt += `  - ${substageContent}\n`;
                 });
             }

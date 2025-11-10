@@ -37,6 +37,11 @@ export class InstantReqViewProvider implements vscode.WebviewViewProvider {
                         });
                     }
                     return;
+                case 'saveRecentAgent':
+                    if (message.agentId) {
+                        this._saveRecentAgent(message.agentId);
+                    }
+                    return;
                 case 'saveStages':
                     if (message.stages && message.tabType) {
                         const key = message.tabType === 'requirements' ? 'instantReq.requirementsStages' : 'instantReq.issuesStages';
@@ -84,15 +89,40 @@ export class InstantReqViewProvider implements vscode.WebviewViewProvider {
                         this._context.globalState.update('instantReq.issuesStages', undefined); // クリア
                     }
 
+                    // 最近使用したエージェントを読み込み
+                    const recentAgents = this._context.globalState.get<string[]>('instantReq.recentAgents', []);
+
                     const response: StagesLoadedMessage = {
                         command: 'stagesLoaded',
                         requirementsStages: savedRequirementsStages || defaultStages.requirements,
-                        issuesStages: savedIssuesStages || defaultStages.issues
+                        issuesStages: savedIssuesStages || defaultStages.issues,
+                        recentAgents: recentAgents
                     };
                     webviewView.webview.postMessage(response);
                     return;
             }
         });
+    }
+
+    /**
+     * 最近使用したエージェントを保存
+     */
+    private _saveRecentAgent(agentId: string): void {
+        const recentAgents = this._context.globalState.get<string[]>('instantReq.recentAgents', []);
+
+        // 既存のものを削除して先頭に追加（重複排除）
+        const updated = [agentId, ...recentAgents.filter(a => a !== agentId)].slice(0, 10);
+
+        this._context.globalState.update('instantReq.recentAgents', updated);
+
+        // webviewに更新を通知
+        if (this._view) {
+            const response: StagesLoadedMessage = {
+                command: 'stagesLoaded',
+                recentAgents: updated
+            };
+            this._view.webview.postMessage(response);
+        }
     }
 
     private _getHtmlForWebview(webview: vscode.Webview): string {

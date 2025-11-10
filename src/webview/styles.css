@@ -213,6 +213,10 @@ body {
     cursor: pointer;
     font-size: 12px;
     font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
 }
 
 .btn-add-stage:hover {
@@ -280,6 +284,10 @@ body {
     cursor: pointer;
     font-size: 12px;
     font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
 }
 
 .btn-add:hover {

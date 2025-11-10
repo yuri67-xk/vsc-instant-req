@@ -12,9 +12,17 @@ interface DynamicAgentInfo {
 export class AgentSelector {
     private settings: Settings;
     private dynamicAgents: Map<string, DynamicAgentInfo> = new Map();
+    private recentAgents: string[] = [];
 
     constructor(settings: Settings) {
         this.settings = settings;
+    }
+
+    /**
+     * 最近使用したエージェントを設定
+     */
+    public setRecentAgents(recentAgents: string[]): void {
+        this.recentAgents = recentAgents;
     }
 
     /**
@@ -117,13 +125,40 @@ export class AgentSelector {
         defaultOption.textContent = '選択してください';
         select.appendChild(defaultOption);
 
+        // 最近使用したエージェント（存在する場合）
+        if (this.recentAgents.length > 0) {
+            const recentHeader = document.createElement('option');
+            recentHeader.disabled = true;
+            recentHeader.textContent = '最近使用';
+            select.appendChild(recentHeader);
+
+            this.recentAgents.forEach(agentId => {
+                const option = document.createElement('option');
+                option.value = agentId;
+                option.textContent = `  ${agentId}`;
+                select.appendChild(option);
+            });
+
+            const separator = document.createElement('option');
+            separator.disabled = true;
+            separator.textContent = '────────────';
+            select.appendChild(separator);
+        }
+
         // エージェントオプション
-        agentInfo.agentList.forEach(agent => {
-            const option = document.createElement('option');
-            option.value = agent.id;
-            option.textContent = agent.name;
-            select.appendChild(option);
-        });
+        if (agentInfo.agentList.length > 0) {
+            const presetHeader = document.createElement('option');
+            presetHeader.disabled = true;
+            presetHeader.textContent = 'プリセット';
+            select.appendChild(presetHeader);
+
+            agentInfo.agentList.forEach(agent => {
+                const option = document.createElement('option');
+                option.value = agent.id;
+                option.textContent = `  ${agent.name}`;
+                select.appendChild(option);
+            });
+        }
 
         // カスタムオプション
         const customOption = document.createElement('option');

@@ -73,6 +73,16 @@ class VSCodeAPIWrapper {
             tabType
         });
     }
+
+    /**
+     * Save recent agent to history
+     */
+    public saveRecentAgent(agentId: string): void {
+        this.postMessage({
+            command: 'saveRecentAgent',
+            agentId
+        });
+    }
 }
 
 // Singleton instance

@@ -5,6 +5,7 @@ import { StageEditor } from './components/StageEditor';
 import { PromptGenerator } from './components/PromptGenerator';
 import { RequirementsManager } from './components/RequirementsManager';
 import { IssuesManager } from './components/IssuesManager';
+import { vscode } from './utils/vscodeApi';
 
 // グローバル設定（HTMLから注入される）
 declare global {
@@ -122,6 +123,12 @@ class InstantReqApp {
      * Stagesロード時の処理
      */
     private handleStagesLoaded(message: StagesLoadedMessage): void {
+        // 最近使用したエージェントを設定
+        if (message.recentAgents) {
+            this.requirementsAgentSelector.setRecentAgents(message.recentAgents);
+            this.issuesAgentSelector.setRecentAgents(message.recentAgents);
+        }
+
         if (message.requirementsStages && message.issuesStages) {
             this.stageEditor.setStages(message.requirementsStages, message.issuesStages);
 
@@ -160,11 +167,17 @@ class InstantReqApp {
             const stages = this.stageEditor.getRequirementsStages();
             const dynamicAgents = this.requirementsAgentSelector.getAllAgentValues();
 
+            // 選択されたカスタムエージェントを履歴に保存
+            this.saveSelectedAgentsToHistory(dynamicAgents);
+
             this.currentPrompt = this.promptGenerator.generate(requirements, stages, dynamicAgents);
         } else {
             const issues = this.issuesManager.getIssues();
             const stages = this.stageEditor.getIssuesStages();
             const dynamicAgents = this.issuesAgentSelector.getAllAgentValues();
+
+            // 選択されたカスタムエージェントを履歴に保存
+            this.saveSelectedAgentsToHistory(dynamicAgents);
 
             this.currentPrompt = this.promptGenerator.generate(issues, stages, dynamicAgents);
         }
@@ -172,6 +185,18 @@ class InstantReqApp {
         if (this.currentPrompt) {
             this.promptGenerator.display(this.currentPrompt);
         }
+    }
+
+    /**
+     * 選択されたエージェントを履歴に保存
+     */
+    private saveSelectedAgentsToHistory(dynamicAgents: Map<string, string>): void {
+        dynamicAgents.forEach(agentId => {
+            // カスタムエージェント（@で始まる）のみ履歴に保存
+            if (agentId.startsWith('@')) {
+                vscode.saveRecentAgent(agentId);
+            }
+        });
     }
 
     /**
